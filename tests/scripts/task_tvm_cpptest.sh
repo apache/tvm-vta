@@ -19,6 +19,8 @@
 set -e
 set -u
 
+export VTA_HW_PATH=`pwd`
+
 cd tvm
 
 export LD_LIBRARY_PATH="lib:${LD_LIBRARY_PATH:-}"
