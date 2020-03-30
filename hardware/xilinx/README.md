@@ -15,4 +15,4 @@
 <!--- specific language governing permissions and limitations -->
 <!--- under the License. -->
 
-Complete instructions on how to build custom FPGA hardware designs are available on the [TVM documentation webpage](https://docs.tvm.ai/vta/install.html#vta-fpga-toolchain-installation).
+Complete instructions on how to build custom FPGA hardware designs are available on the [TVM documentation webpage](https://tvm.apache.org/docs/vta/install.html#vta-fpga-toolchain-installation).
