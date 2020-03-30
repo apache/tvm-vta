@@ -28,7 +28,7 @@ trap cleanup 0
 
 
 echo "Check file types..."
-# python3 tvm/tests/lint/check_file_type.py
+python3 tvm/tests/lint/check_file_type.py
 
 echo "Check ASF license header..."
 java -jar /bin/apache-rat.jar -E tvm/tests/lint/rat-excludes  -d . | (grep "== File" > /tmp/$$.apache-rat.txt || true)
