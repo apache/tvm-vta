@@ -16,6 +16,13 @@
 # under the License.
 
 github:
+  description: "Open, Modular, Deep Learning Accelerator"
+  labels:
+    - tvm
+    - vta
+    - tensor
+    - hardware
+    - machine-learning
   enabled_merge_buttons:
     squash:  true
     rebase:  true
