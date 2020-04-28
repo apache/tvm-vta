@@ -22,6 +22,7 @@
 
 #include <vta/driver.h>
 #include <thread>
+#include <time.h>
 #include "pynq_driver.h"
 
 
@@ -125,6 +126,10 @@ class VTADevice {
     VTAWriteMappedReg(vta_load_handle_, 0x0, VTA_AUTORESTART);
     VTAWriteMappedReg(vta_compute_handle_, 0x0, VTA_AUTORESTART);
     VTAWriteMappedReg(vta_store_handle_, 0x0, VTA_AUTORESTART);
+
+    // Allow device to respond
+    struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000 };
+    nanosleep(&ts, &ts);
 
     // Loop until the VTA is done
     unsigned t, flag = 0;
