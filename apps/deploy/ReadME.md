@@ -76,8 +76,17 @@ It also contains an example code to deploy with C++.
       ```
 4. python deploy
 
-      4.1 run python_deploy.py
+      4.1 Deploy with FPGA.
 
-      ```bash
-      python3 ./python_deploy.py
-      ```
+          4.1.1 Copy "./vta-hw/apps/deploy/build" folder into target FPGA board "vta-hw/apps/deploy/" folder
+
+          4.1.2 Run command on FPGA board to build libtvmruntime.so and libvta.so
+
+          ```bash
+          make runtime vta
+          ```
+
+          4.1.2 run python_deploy.py
+          ```bash
+          python3 ./python_deploy.py
+          ```

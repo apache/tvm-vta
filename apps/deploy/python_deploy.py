@@ -14,53 +14,53 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""Python VTA Deploy."""
 from __future__ import absolute_import, print_function
 
-import argparse, json, os, requests, sys, time
 from io import BytesIO
-from os.path import join, isfile
 from PIL import Image
 
+import requests
 import numpy as np
 
 import tvm
 from tvm import relay
-from tvm.contrib import graph_runtime, util, download
+from tvm.contrib import graph_runtime, cc
 
-from tvm.contrib import cc
-from tvm.contrib import util
 import vta
 from vta.testing import simulator
 
-ctx = tvm.ext_dev(0)
+CTX = tvm.ext_dev(0)
 
 def load_model():
-    with open("./build/model/graph.json", "r") as f:
-        graph = f.read();
+    """ Load VTA Model  """
+
+    with open("./build/model/graph.json", "r") as graphfile:
+        graph = graphfile.read()
 
     cc.create_shared("./graph_lib.so", ["./build/model/lib.o"])
     lib = tvm.runtime.load_module("./graph_lib.so")
 
-    m = graph_runtime.create(graph, lib, ctx)
+    model = graph_runtime.create(graph, lib, CTX)
 
-    with open("./build/model/params.params", "rb") as f:
-        param_bytes = f.read();
+    with open("./build/model/params.params", "rb") as paramfile:
+        param_bytes = paramfile.read()
     params = relay.load_param_dict(param_bytes)
 
-    return m, params
+    return model, params
 
-mod, params = load_model()
+MOD, PARAMS = load_model()
 
-image_url = 'https://homes.cs.washington.edu/~moreau/media/vta/cat.jpg'
-response = requests.get(image_url)
+IMAGE_URL = 'https://homes.cs.washington.edu/~moreau/media/vta/cat.jpg'
+RESPONSE = requests.get(IMAGE_URL)
+
 # Prepare test image for inference
-image = Image.open(BytesIO(response.content)).resize((224, 224))
+IMAGE = Image.open(BytesIO(RESPONSE.content)).resize((224, 224))
 
-mod.set_input('data', image)
-mod.set_input(**params)
+MOD.set_input('data', IMAGE)
+MOD.set_input(**PARAMS)
+MOD.run()
 
-mod.run()
-
-tvm_output = mod.get_output(0, tvm.nd.empty((1, 1000), "float32", ctx))
-top_categories = np.argsort(tvm_output.asnumpy()[0])
-print("\t#1:", top_categories[-1])
+TVM_OUTPUT = MOD.get_output(0, tvm.nd.empty((1, 1000), "float32", CTX))
+TOP_CATEGORIES = np.argsort(TVM_OUTPUT.asnumpy()[0])
+print("\t#1:", TOP_CATEGORIES[-1])

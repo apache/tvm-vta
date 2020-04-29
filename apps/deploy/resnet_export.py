@@ -14,34 +14,35 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
+""" Compile And Export MXNET Resnet18 Model With VTA As Backend """
 from __future__ import absolute_import, print_function
 
+import os
+from os.path import exists
 import numpy as np
-import argparse, json, os
-from os.path import join, isfile, exists
 from mxnet.gluon.model_zoo import vision
 
 import tvm
 from tvm import autotvm, relay
+from tvm.relay import op, transform
 
 import vta
 from vta.top import graph_pack
 from vta.top.graphpack import run_opt_pass
-from tvm.relay import op, transform
 
 # Load VTA parameters from the vta/config/vta_config.json file
-env = vta.get_env()
-assert(env.target.device_name == "vta")
+ENV = vta.get_env()
+assert ENV.target.device_name == "vta"
 # Dictionary lookup for when to start/end bit packing
-pack_dict = {"resnet18_v1": ["nn.max_pool2d", "nn.global_avg_pool2d", None, None],}
+PACK_DICT = {"resnet18_v1": ["nn.max_pool2d", "nn.global_avg_pool2d", None, None],}
 
 # Name of Gluon model to compile
-model = "resnet18_v1"
-assert model in pack_dict
+MODEL = "resnet18_v1"
+assert MODEL in PACK_DICT
 
 def merge_transform_to_mxnet_model(mod):
-    svalue= np.array([123., 117., 104.])
+    """ Add Image Transform Logic Into Model """
+    svalue = np.array([123., 117., 104.])
     sub_data = relay.Constant(tvm.nd.array(svalue)).astype("float32")
     dvalue = np.array([58.395, 57.12, 57.37])
     divide_data = relay.Constant(tvm.nd.array(dvalue)).astype("float32")
@@ -52,25 +53,25 @@ def merge_transform_to_mxnet_model(mod):
     simple_net = relay.expand_dims(data, axis=0, num_newaxis=1)
     # to do, relay not support dynamic shape now, future need to add resize logic
     #simple_net = relay.image.resize(simple_net, (224, 224), "NHWC", "bilinear", "align_corners")
-    simple_net = relay.subtract(simple_net,sub_data)
+    simple_net = relay.subtract(simple_net, sub_data)
     simple_net = relay.divide(simple_net, divide_data)
     simple_net = relay.transpose(simple_net, ((0, 3, 1, 2)))
 
     #merge tranform into pretrained model network
     entry = mod["main"]
-    anf =  run_opt_pass(entry.body, transform.ToANormalForm())
+    anf = run_opt_pass(entry.body, transform.ToANormalForm())
     call = anf.value
     data, weights = call.args
     first_op = op.nn.conv2d(
-                    simple_net,
-                    weights,
-                    strides=call.attrs.strides,
-                    padding=call.attrs.padding,
-                    dilation=call.attrs.dilation,
-                    groups=call.attrs.groups,
-                    channels=call.attrs.channels,
-                    kernel_size=call.attrs.kernel_size,
-                    out_dtype=call.attrs.out_dtype)
+        simple_net,
+        weights,
+        strides=call.attrs.strides,
+        padding=call.attrs.padding,
+        dilation=call.attrs.dilation,
+        groups=call.attrs.groups,
+        channels=call.attrs.channels,
+        kernel_size=call.attrs.kernel_size,
+        out_dtype=call.attrs.out_dtype)
     net = relay.expr.Let(anf.var, first_op, anf.body)
     net = run_opt_pass(net, transform.ToGraphNormalForm())
 
@@ -78,6 +79,7 @@ def merge_transform_to_mxnet_model(mod):
     return mod
 
 def compile_mxnet_gulon_resnet(_env, _model):
+    """ Compile Model """
     # Generate tvm IR from mxnet gluon model
     # Populate the shape and data type dictionary for ImageNet classifier input
     dtype_dict = {"data": 'float32'}
@@ -96,8 +98,7 @@ def compile_mxnet_gulon_resnet(_env, _model):
         # Perform quantization in Relay
         # Note: We set opt_level to 3 in order to fold batch norm
         with relay.build_config(opt_level=3):
-            with relay.quantize.qconfig(global_scale=8.0,
-                skip_conv_layers=[0]):
+            with relay.quantize.qconfig(global_scale=8.0, skip_conv_layers=[0]):
                 mod = relay.quantize.quantize(mod, params=params)
             # Perform graph packing and constant folding for VTA target
             relay_prog = graph_pack(
@@ -105,26 +106,27 @@ def compile_mxnet_gulon_resnet(_env, _model):
                 _env.BATCH,
                 _env.BLOCK_IN,
                 _env.WGT_WIDTH,
-                start_name=pack_dict[_model][0],
-                stop_name=pack_dict[_model][1])
+                start_name=PACK_DICT[_model][0],
+                stop_name=PACK_DICT[_model][1])
 
     # Compile Relay program with AlterOpLayout disabled
     with relay.build_config(opt_level=3, disabled_pass={"AlterOpLayout"}):
         with vta.build_config(debug_flag=0):
             graph, lib, params = relay.build(
-                    relay_prog, target=_env.target,
-                    params=params, target_host=_env.target_host)
+                relay_prog, target=_env.target,
+                params=params, target_host=_env.target_host)
 
     return graph, lib, params
 
 def export_tvm_compile(graph, lib, params, path):
-    if (not exists(path)):
+    """ Export Model"""
+    if not exists(path):
         os.makedirs(path)
     lib.save(path+"/lib.o")
-    with open(path+"/graph.json", "w") as fo:
-        fo.write(graph)
-    with open(path+"/params.params", "wb") as fo:
-        fo.write(relay.save_param_dict(params))
+    with open(path+"/graph.json", "w") as graphfile:
+        graphfile.write(graph)
+    with open(path+"/params.params", "wb") as paramfile:
+        paramfile.write(relay.save_param_dict(params))
 
-graph, lib, params = compile_mxnet_gulon_resnet(env, model)
-export_tvm_compile(graph, lib, params, "./build/model")
+GRAPH, LIB, PARAMS = compile_mxnet_gulon_resnet(ENV, MODEL)
+export_tvm_compile(GRAPH, LIB, PARAMS, "./build/model")

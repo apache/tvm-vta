@@ -14,16 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-
-from PIL import Image
-from io import BytesIO
+"""Resize Image To Match MXNET Model."""
 import sys
 import os
+from PIL import Image
 import numpy as np
 
 if __name__ == "__main__":
     assert len(sys.argv) == 2, "usage: <image path>"
-    img_path = sys.argv[1]
-    assert os.path.isfile(img_path), "file " + img_path + "  not exist"
-    image = Image.open(img_path).resize((224, 224))
-    np.array(image).astype('float32').tofile("./img_data")
+    IMG_PATH = sys.argv[1]
+    assert os.path.isfile(IMG_PATH), "file " + IMG_PATH + "  not exist"
+    IMAGE = Image.open(IMG_PATH).resize((224, 224))
+    np.array(IMAGE).astype('float32').tofile("./img_data")
