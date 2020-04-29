@@ -50,6 +50,7 @@ set wgt_mem_depth     [exec python $vta_config --get-wgt-mem-depth]
 set out_part          [exec python $vta_config --get-out-mem-banks]
 set out_mem_width     [exec python $vta_config --get-out-mem-width]
 set out_mem_depth     [exec python $vta_config --get-out-mem-depth]
+set num_wgt_mem_uram  [exec python $vta_config --get-num-wgt-mem-uram]
 
 # AXI bus signals
 set axi_cache         [exec python $vta_config --get-axi-cache-bits]
@@ -247,6 +248,9 @@ for {set i 0} {$i < $wgt_part} {incr i} {
   connect_bd_intf_net -intf_net compute_0_wgt_mem_${i}_V_PORTA \
     [get_bd_intf_pins $wgt_mem/BRAM_PORTB] \
     $portb
+  if { $device_family eq "zynq-ultrascale+" && $i < $num_wgt_mem_uram } {
+    set_property -dict [list CONFIG.PRIM_type_to_Implement {URAM}] $wgt_mem
+  }
 }
 
 # Create and connect out_mem partitions

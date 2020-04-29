@@ -79,6 +79,8 @@ def main():
                         help="returns output memory depth")
     parser.add_argument("--get-out-mem-axi-ratio", action="store_true",
                         help="returns ratio between output element width and axi width")
+    parser.add_argument("--get-num-wgt-mem-uram", action="store_true",
+                        help="returns number of weight memory blocks to be implemented on URAM")
     parser.add_argument("--get-axi-cache-bits", action="store_true",
                         help="returns AXI system ARCACHE/AWCACHE hardcoded bit value")
     parser.add_argument("--get-axi-prot-bits", action="store_true",
@@ -192,6 +194,12 @@ def main():
 
     if args.get_out_mem_axi_ratio:
         print(pkg.out_mem_axi_ratio)
+
+    if args.get_num_wgt_mem_uram:
+        if hasattr(pkg, 'num_wgt_mem_uram'):
+            print(pkg.num_wgt_mem_uram)
+        else:
+            print(0)
 
     if args.get_axi_cache_bits:
         print(pkg.axi_cache_bits)
