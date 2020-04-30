@@ -98,18 +98,14 @@ It also contains an example code to deploy with C++ and Python.
 
           ```bash
           make runtime vta
+
+          ```
+          3.1.3 in ./vta-hw/apps/deploy run make to compile ./build/model/lib.so
+          ```
+          make
           ```
 
-          3.1.3 run python_deploy.py
+          3.1.3 run python_deploy.py by "run_python_deploy.sh"
           ```bash
-          python3 ./python_deploy.py
-          ```
-
-      3.2 Deploy with Simulator
-
-       	  3.2.1 change ./vta-hw/config/vta_config.json TARGET into "sim"
-
-          3.2.2  run python_deploy.py
-          ```bash
-          python3 ./python_deploy.py
+          sudo ./run_python_deploy.sh
           ```

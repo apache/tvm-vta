@@ -17,6 +17,7 @@
 """Python VTA Deploy."""
 from __future__ import absolute_import, print_function
 
+import os
 from io import BytesIO
 from PIL import Image
 
@@ -24,32 +25,38 @@ import requests
 import numpy as np
 
 import tvm
-from tvm import relay
-from tvm.contrib import graph_runtime, cc
+from tvm.contrib import graph_runtime
 
-import vta
-from vta.testing import simulator
 
 CTX = tvm.ext_dev(0)
+
+def load_vta_library():
+    """load vta lib"""
+    curr_path = os.path.dirname(
+        os.path.abspath(os.path.expanduser(__file__)))
+    proj_root = os.path.abspath(os.path.join(curr_path, "../../../../"))
+    vtadll = os.path.abspath(os.path.join(proj_root, "build/libvta.so"))
+    return tvm.runtime.load_module(vtadll)
+
 
 def load_model():
     """ Load VTA Model  """
 
+    load_vta_library()
+
     with open("./build/model/graph.json", "r") as graphfile:
         graph = graphfile.read()
 
-    cc.create_shared("./graph_lib.so", ["./build/model/lib.o"])
-    lib = tvm.runtime.load_module("./graph_lib.so")
+    lib = tvm.runtime.load_module("./build/model/lib.so")
 
     model = graph_runtime.create(graph, lib, CTX)
 
     with open("./build/model/params.params", "rb") as paramfile:
         param_bytes = paramfile.read()
-    params = relay.load_param_dict(param_bytes)
 
-    return model, params
+    return model, param_bytes
 
-MOD, PARAMS = load_model()
+MOD, PARAMS_BYTES = load_model()
 
 IMAGE_URL = 'https://homes.cs.washington.edu/~moreau/media/vta/cat.jpg'
 RESPONSE = requests.get(IMAGE_URL)
@@ -58,7 +65,7 @@ RESPONSE = requests.get(IMAGE_URL)
 IMAGE = Image.open(BytesIO(RESPONSE.content)).resize((224, 224))
 
 MOD.set_input('data', IMAGE)
-MOD.set_input(**PARAMS)
+MOD.load_params(PARAMS_BYTES)
 MOD.run()
 
 TVM_OUTPUT = MOD.get_output(0, tvm.nd.empty((1, 1000), "float32", CTX))
