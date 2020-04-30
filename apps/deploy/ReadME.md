@@ -21,91 +21,103 @@ How to Deploy TVM-VTA Modules
 This folder contains an example on how to deploy TVM-VTA modules.
 It also contains an example code to deploy with C++ and Python.
 
-1. In tvm enable vta fsim or FPGA and compile tvm successfully.
+1. In host machine tvm project enable vta fsim or FPGA and compile tvm successfully.
 
+2. In target FPGA machine, flash bitstream into FPGA, following are example on pynq board
 
-2. Compile and Deploy with C++
+   Run following command, "/home/xilinx/vta.bit" is the bitstream file
 
-   2.1 Deploy with FPGA
+	```bash
+        xilinx@pynq:~$ sudo python3
+	>>> from pynq import Bitstream
+	>>> file="/home/xilinx/vta.bit"
+	>>> bt = Bitstream(file)
+	>>> bt.download()
+	```
 
-       2.1.1 change ./vta-hw/config/vta_config.json TARGET into FPGA type for example "ultra96"
+3. Compile and Deploy with C++
 
-       2.1.2 run resnet_export.py, this script would compile mxnet resnet18 into vta library, 
-            and compute graph, parameter and save into ./build/model folder.
+   3.1 Deploy with FPGA
+
+       3.1.1 in host machine change ./vta-hw/config/vta_config.json TARGET into FPGA type
+             for example "ultra96"
+
+       3.1.2 in host machine run resnet_export.py, this script would compile mxnet resnet18
+             into vta library, and compute graph, parameter and save into ./build/model folder.
        
 	```bash
   	python3 ./resnet_export.py
 	```
 
-       2.1.3 copy './build/' folder(generate by #2) into target FPGA board folder 
+       3.1.3 from host machine, copy './build/' folder(generate by #2) into target FPGA board folder 
              "tvm/3rdparty/vta-hw/apps/deploy/"
 
-       2.1.4 in target FPGA board, enable FPGA in config file and run following command
+       3.1.4 in target FPGA board, enable FPGA in config file and run following command
 
              to build libvta.so and libtvm_runtime.so
        ```bash
        make runtime vta
        ```
 
-       2.1.5 copy './build/' folder into target FPGA board folder "tvm/3rdparty/vta-hw/apps/deploy/"
-
-       2.1.6 goto "tvm/3rdparty/vta-hw/apps/deploy/"
+       3.1.5 in target FPGA board goto "tvm/3rdparty/vta-hw/apps/deploy/"
        ```bash
        cd tvm/3rdparty/vta-hw/apps/deploy/
        ```
 
-       2.1.7 Run "make" command, the script would build "lib.so" and cop libtvm_runtime.so
+       3.1.6 int FPGA board Run "make" command, the script would build "lib.so" and cop libtvm_runtime.so
              and "libvta*.so" into "./build" folder and compile execute file "./deploy"
       ```bash
       make
       ```
   
-      2.1.8. use following command to convert a image into correct image size that match mxnet resnet18 requirement.
+      3.1.7. in FPGA board use following command to convert a image into correct image size that match 
+             mxnet resnet18 requirement.
       ```bash
       ./img_data_help.py <image path>
       ```
       the said command would output a file name 'img_data'
 
-      2.1.9. run following command to get the image type
+      3.1.8. in FPGA board run following command to get the image type
       ```bash
       ./deploy img_data
       ```
 
-   2.2 Deploy with vta simulator
+   3.2 Deploy with vta simulator(all steps happen in host machine)
 
-       2.2.1 change ./vta-hw/config/vta_config.json TARGET into "sim"
+       3.2.1 change ./vta-hw/config/vta_config.json TARGET into "sim"
 
-       2.2.2 run resnet_export.py, this script would compile mxnet resnet18 into vta library, 
+       3.2.2 run resnet_export.py, this script would compile mxnet resnet18 into vta library, 
             and compute graph, parameter and save into ./build/model folder.
 
 	```bash
   	python3 ./resnet_export.py
 	```
        
-       2.2.3 Run "make" command, the script would build "lib.so" and copy libtvm_runtime.so
+       3.2.3 Run "make" command, the script would build "lib.so" and copy libtvm_runtime.so
              and libvta*.so into ./build folder and compile execute file ./deploy
        ```bash
        make
        ```
 
-3. python deploy
+4. python deploy
 
-      3.1 Deploy with FPGA.
+      4.1 Deploy with FPGA.
 
-          3.1.1 Copy "./vta-hw/apps/deploy/build" folder into target FPGA board "vta-hw/apps/deploy/" folder
+          4.1.1 From host machine Copy "./vta-hw/apps/deploy/build" folder into 
+                target FPGA board "vta-hw/apps/deploy/" folder
 
-          3.1.2 Run command on FPGA board to build libtvmruntime.so and libvta.so
+          4.1.2 on FPGA board build libtvmruntime.so and libvta.so
 
           ```bash
           make runtime vta
-
           ```
-          3.1.3 in ./vta-hw/apps/deploy run make to compile ./build/model/lib.so
+
+          4.1.3 in ./vta-hw/apps/deploy run make to compile ./build/model/lib.so
           ```
           make
           ```
 
-          3.1.3 run python_deploy.py by "run_python_deploy.sh"
+          4.1.4 run python_deploy.py by "run_python_deploy.sh"
           ```bash
           sudo ./run_python_deploy.sh
           ```
