@@ -18,6 +18,7 @@
 from __future__ import absolute_import, print_function
 
 import os
+from os.path import join
 from io import BytesIO
 from PIL import Image
 
@@ -25,7 +26,7 @@ import requests
 import numpy as np
 
 import tvm
-from tvm.contrib import graph_runtime
+from tvm.contrib import graph_runtime, download
 
 
 CTX = tvm.ext_dev(0)
@@ -54,20 +55,26 @@ def load_model():
     with open("./build/model/params.params", "rb") as paramfile:
         param_bytes = paramfile.read()
 
-    return model, param_bytes
+    categ_url = "https://github.com/uwsaml/web-data/raw/master/vta/models/"
+    categ_fn = "synset.txt"
+    download.download(join(categ_url, categ_fn), categ_fn)
+    synset = eval(open(categ_fn).read())
 
-MOD, PARAMS_BYTES = load_model()
+    return model, param_bytes, synset
 
-IMAGE_URL = 'https://homes.cs.washington.edu/~moreau/media/vta/cat.jpg'
-RESPONSE = requests.get(IMAGE_URL)
+if __name__ == "__main__":
+    MOD, PARAMS_BYTES, SYNSET = load_model()
 
-# Prepare test image for inference
-IMAGE = Image.open(BytesIO(RESPONSE.content)).resize((224, 224))
+    IMAGE_URL = 'https://homes.cs.washington.edu/~moreau/media/vta/cat.jpg'
+    RESPONSE = requests.get(IMAGE_URL)
 
-MOD.set_input('data', IMAGE)
-MOD.load_params(PARAMS_BYTES)
-MOD.run()
+    # Prepare test image for inference
+    IMAGE = Image.open(BytesIO(RESPONSE.content)).resize((224, 224))
 
-TVM_OUTPUT = MOD.get_output(0, tvm.nd.empty((1, 1000), "float32", CTX))
-TOP_CATEGORIES = np.argsort(TVM_OUTPUT.asnumpy()[0])
-print("\t#1:", TOP_CATEGORIES[-1])
+    MOD.set_input('data', IMAGE)
+    MOD.load_params(PARAMS_BYTES)
+    MOD.run()
+
+    TVM_OUTPUT = MOD.get_output(0, tvm.nd.empty((1, 1000), "float32", CTX))
+    TOP_CATEGORIES = np.argsort(TVM_OUTPUT.asnumpy()[0])
+    print("\t#1:", SYNSET[TOP_CATEGORIES[-1]])
