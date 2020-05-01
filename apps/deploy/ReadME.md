@@ -25,14 +25,11 @@ It also contains an example code to deploy with C++ and Python.
 
 2. In target FPGA machine, flash bitstream into FPGA, following are example on pynq board
 
-   Run following command, "/home/xilinx/vta.bit" is the bitstream file
+   'cd' into vta-hw/app/deploy, run following command,
+    "/home/xilinx/vta.bit" is the bitstream file
 
 	```bash
-        xilinx@pynq:~$ sudo python3
-	>>> from pynq import Bitstream
-	>>> file="/home/xilinx/vta.bit"
-	>>> bt = Bitstream(file)
-	>>> bt.download()
+        sudo python3 ./bitstream.py /home/xilinx/vta.bit
 	```
 
 3. Compile and Deploy with C++
