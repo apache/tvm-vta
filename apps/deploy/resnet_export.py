@@ -51,8 +51,8 @@ def merge_transform_to_mxnet_model(mod):
     data = relay.var("data", relay.TensorType(data_shape, "float32"))
 
     simple_net = relay.expand_dims(data, axis=0, num_newaxis=1)
-    # to do, relay not support dynamic shape now, future need to add resize logic
-    #simple_net = relay.image.resize(simple_net, (224, 224), "NHWC", "bilinear", "align_corners")
+    # To do, relay not support dynamic shape now, future need to add resize logic
+    # simple_net = relay.image.resize(simple_net, (224, 224), "NHWC", "bilinear", "align_corners")
     simple_net = relay.subtract(simple_net, sub_data)
     simple_net = relay.divide(simple_net, divide_data)
     simple_net = relay.transpose(simple_net, ((0, 3, 1, 2)))

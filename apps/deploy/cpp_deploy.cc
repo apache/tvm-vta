@@ -25,6 +25,8 @@
 #include <iterator>
 #include <algorithm>
 #include <vta/runtime/runtime.h>
+
+
 void graph_test(std::string img,
                 std::string model_path,
                 std::string lib,
@@ -78,7 +80,7 @@ void graph_test(std::string img,
   // load image data saved in binary
   std::ifstream data_fin(img.c_str(), std::ios::binary);
   data_fin.read(static_cast<char*>(vta_ptr), 3 * 224 * 224 * 4);
-  // get the function from the module(load patameters)
+  // get the function from the module(load parameters)
   tvm::runtime::PackedFunc load_params = mod.GetFunction("load_params");
   load_params(params_arr);
   tvm::runtime::PackedFunc run = mod.GetFunction("run");

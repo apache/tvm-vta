@@ -1,4 +1,4 @@
-#licensed to the Apache Software Foundation (ASF) under one
+# Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
 # regarding copyright ownership.  The ASF licenses this file
@@ -16,7 +16,7 @@
 # under the License.
 
 # Makefile Example to deploy TVM modules.
-TVM_ROOT=$(shell cd ../../../../; pwd)
+TVM_ROOT=${TVM_HOME}
 CUR_DIR=$(shell pwd)
 DMLC_CORE=${TVM_ROOT}/3rdparty/dmlc-core
 
@@ -27,15 +27,6 @@ VTA_LIB=vta
 ifeq (${TARGET}, sim)
 	VTA_LIB=vta_fsim
 endif
-
-#packages:
-#	[ -z `dpkg -l | grep libboost-all-dev` ] && sudo apt-get install libboost-all-dev
-
-#.PHONY: packages
-
-#p2:
-#	[ -z `dpkg -l | grep libpng-dev` ] && sudo apt-get install libpng-dev
-#.PHONY: p2
 
 PKG_CFLAGS = -std=c++11 -O0 -g -fPIC\
 						 -I${TVM_ROOT}/include\
@@ -53,7 +44,6 @@ all:./build/deploy copylib
 
 ./build/deploy: ./build/deploy.o ./build/model/lib.so
 	$(CXX) $(PKG_CFLAGS) -o $@  $^ $(PKG_LDFLAGS)
-	# Build rule for all in one TVM package library
 
 ./build/deploy.o: cpp_deploy.cc
 	@mkdir -p $(@D)

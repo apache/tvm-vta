@@ -17,7 +17,7 @@
 
 
 How to Deploy TVM-VTA Modules
-=========================
+=============================
 This folder contains an example on how to deploy TVM-VTA modules.
 It also contains an example code to deploy with C++ and Python.
 
@@ -99,7 +99,7 @@ It also contains an example code to deploy with C++ and Python.
        make
        ```
 
-4. python deploy
+4. Python deploy
 
       4.1 Deploy with FPGA.
 
