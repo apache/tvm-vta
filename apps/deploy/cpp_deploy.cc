@@ -108,7 +108,8 @@ void graph_test(std::string img,
 
 int main(int argc, char *argv[]) {
   if (argc <= 1) {
-          printf("deploy <file name>\n");
+  	printf("deploy <file name>\n");
+	return 0;
   }
   graph_test(argv[1],
              "./model/",
