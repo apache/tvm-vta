@@ -121,7 +121,7 @@ extern "C" {
 /*! Instruction opcode field bitwidth */
 #define VTA_OPCODE_BIT_WIDTH 3
 /*! ALU opcode field bitwidth */
-#define VTA_ALU_OPCODE_BIT_WIDTH 2
+#define VTA_ALU_OPCODE_BIT_WIDTH 3
 
 /*! Opcode: load encoding */
 #define VTA_OPCODE_LOAD 0
@@ -142,9 +142,11 @@ extern "C" {
 #define VTA_ALU_OPCODE_ADD 2
 /*! ALU opcode: shift right by immediate op */
 #define VTA_ALU_OPCODE_SHR 3
+/*! ALU opcode: mul */
+#define VTA_ALU_OPCODE_MUL 4
 
 /*! Memory type field bitwidth */
-#define VTA_MEMOP_ID_BIT_WIDTH 2
+#define VTA_MEMOP_ID_BIT_WIDTH 3
 /*! Load/Store Instruction: DRAM address width*/
 #define VTA_MEMOP_SRAM_ADDR_BIT_WIDTH 16
 /*! Load/Store Instruction: DRAM address width*/
@@ -176,6 +178,9 @@ extern "C" {
 #define VTA_MEM_ID_ACC 3
 /*! Mem ID constant: output store buffer */
 #define VTA_MEM_ID_OUT 4
+
+// int8 buffer to int32 acc
+#define VTA_MEM_ID_ACC_8 5
 
 /*! GEMM Micro-op start position of the acc_idx field */
 #define VTA_UOP_GEM_0_0 0
@@ -376,9 +381,9 @@ typedef struct {
   /*! \brief Inner loop accumulator memory destination index factor */
   uint64_t dst_factor_in  : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief Outer loop accumulator memory source index factor */
-  uint64_t src_factor_out : VTA_LOG_INP_BUFF_DEPTH;
+  uint64_t src_factor_out : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief Inner loop accumulator memory source index factor */
-  uint64_t src_factor_in  : VTA_LOG_INP_BUFF_DEPTH;
+  uint64_t src_factor_in  : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief ALU opcode */
   uint64_t alu_opcode     : VTA_ALU_OPCODE_BIT_WIDTH;
   /*! \brief Use immediate is true */
@@ -404,7 +409,7 @@ typedef struct {
   /*! \brief Destination index (indexes accum buffer) */
   uint32_t dst_idx    : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief Source index (indexes input buffer for GEMM or accum buffer for ALU) */
-  uint32_t src_idx    : VTA_LOG_INP_BUFF_DEPTH;
+  uint32_t src_idx    : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief Weight index (indexes weight buffer) */
   uint32_t wgt_idx    : VTA_LOG_WGT_BUFF_DEPTH;
 } VTAUop;
