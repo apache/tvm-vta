@@ -377,7 +377,7 @@ class Device {
       // always load in uop, since uop is stateful
       // subsequent non-debug mode exec can depend on it.
       uop_.Load(op, dram_, &(prof_->uop_load_nbytes), false);
-    } else if (op->memory_type == VTA_MEM_ID_ACC_8) {
+    } else if (op->memory_type == VTA_MEM_ID_ACC_8BIT) {
       acc_.Load_int8(op, dram_, &(prof_->acc_load_nbytes), prof_->SkipExec());
     } else {
       LOG(FATAL) << "Unknown memory_type=" << op->memory_type;
