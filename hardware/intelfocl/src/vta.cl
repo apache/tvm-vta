@@ -234,6 +234,15 @@ __kernel void vta_core(unsigned int insn_count,
                                     mul_T prod_dsp = i_elem * w_elem;
                                     sum += (sum_T) prod_dsp;
                                 }
+/* WORKAROUND FOR A SIGNEDNESS BUG IN INTEL FPGA SDK FOR OPENCL */
+#if VTA_BLOCK_IN == 16
+    if ( sum >= 0x80000 ) sum -= 0x100000;
+#elif VTA_BLOCK_IN == 32
+    if ( sum >= 0x100000 ) sum -= 0x200000;
+#else
+    #error Untested Condition
+#endif
+/* END WORKAROUND */
                                 /* Update sum */
                                 accum += sum;
                                 acc_mem[dst_idx][b][oc] = (acc_T) (insn_reset ? 0 : accum);
