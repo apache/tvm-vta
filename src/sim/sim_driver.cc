@@ -212,9 +212,7 @@ class SRAM {
 
       int32_t* sram_ele_ptr = (int32_t*)sram_ptr;
       for (uint32_t x = 0; x < op->x_size * VTA_BATCH * VTA_BLOCK_OUT; ++x) {
-        // printf("x = %u, dram_ptr = %p : %d\n", x, (dram_ptr + x), *(dram_ptr + x));
         *(sram_ele_ptr + x) = (int32_t)*(dram_ptr + x);
-        // printf("x = %u, sram_ptr = %p : %d\n", x, (sram_ele_ptr + x), *(sram_ele_ptr + x));
       }
       sram_ptr += op->x_size;
 
@@ -386,9 +384,6 @@ class Device {
 
   void RunStore(const VTAMemInsn* op) {
     if (op->x_size == 0) return;
-    // bugfix(zhanghao): type should be VTA_MEM_ID_OUT
-    // if (op->memory_type == VTA_MEM_ID_ACC ||
-    //     op->memory_type == VTA_MEM_ID_UOP) {
     if (op->memory_type == VTA_MEM_ID_OUT) {
       prof_->out_store_nbytes += (
           op->x_size * op->y_size * VTA_BATCH * VTA_BLOCK_OUT * VTA_OUT_WIDTH / 8);
@@ -519,11 +514,6 @@ class Device {
           BitPacker<VTA_ACC_WIDTH> src(acc_.BeginPtr(src_index));
           for (int k = 0; k < VTA_BATCH * VTA_BLOCK_OUT; ++k) {
             if (use_imm) {
-              // if (op->alu_opcode == VTA_ALU_OPCODE_CAST) {
-              //   dst.SetSigned(k, func(src.GetSigned(k), op->imm));
-              // } else {
-              //   dst.SetSigned(k, func(dst.GetSigned(k), op->imm));
-              // }
               dst.SetSigned(k, func(dst.GetSigned(k), op->imm));
             } else {
               dst.SetSigned(k, func(dst.GetSigned(k), src.GetSigned(k)));
