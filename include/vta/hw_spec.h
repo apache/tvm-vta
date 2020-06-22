@@ -254,12 +254,16 @@ union VTAInsn {
   VTAAluInsn alu;
 };
 
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif  // MAX
+
 /*! \brief VTA micro-op for GEMM/ALU instruction */
 typedef struct {
   /*! \brief Destination index (indexes accum buffer) */
   uint32_t dst_idx    : VTA_LOG_ACC_BUFF_DEPTH;
   /*! \brief Source index (indexes input buffer for GEMM or accum buffer for ALU) */
-  uint32_t src_idx    : VTA_LOG_ACC_BUFF_DEPTH;
+  uint32_t src_idx    : MAX(VTA_LOG_ACC_BUFF_DEPTH, VTA_LOG_INP_BUFF_DEPTH);
   /*! \brief Weight index (indexes weight buffer) */
   uint32_t wgt_idx    : VTA_LOG_WGT_BUFF_DEPTH;
 } VTAUop;
