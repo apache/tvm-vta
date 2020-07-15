@@ -2,7 +2,7 @@
 #include <dmlc/logging.h>
 #include <vta/hw_spec.h>
 #include "intelfocl_device.h"
-#include "AOCLUtils/aocl_utils.h"
+#include "aoclutils/aocl_utils.h"
 
 #define CL_STATUS_SUCCESS(x) ((x) == CL_SUCCESS)
 
