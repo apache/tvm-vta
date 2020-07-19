@@ -1,10 +1,31 @@
-#include <numeric>
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+#include "intelfocl_device.h"
 #include <dmlc/logging.h>
 #include <vta/hw_spec.h>
-#include "intelfocl_device.h"
+#include <numeric>
 #include "aoclutils/aocl_utils.h"
 
 #define CL_STATUS_SUCCESS(x) ((x) == CL_SUCCESS)
+
+static const char* kernel_names[] = {"vta_core"};
 
 void cleanup() {}
 
@@ -48,7 +69,7 @@ int IntelFOCLDevice::init(size_t mem_size, std::string aocx_file)
 
     for ( unsigned int i = 0; i < NUM_OCL_KERNELS; i++ )
     {
-        _kernels[i] = clCreateKernel(_program, kernel_names[i].c_str(), &status);
+        _kernels[i] = clCreateKernel(_program, kernel_names[i], &status);
         CHECK(CL_STATUS_SUCCESS(status)) << "Failed to create kernel";
         _queues[i] = clCreateCommandQueue(_context, device, 0, &status);
         CHECK(CL_STATUS_SUCCESS(status)) << "Failed to create command queue";
@@ -133,7 +154,7 @@ void IntelFOCLDevice::read_mem(ifocl_mem_off_t offset, void *buf, size_t nbyte)
 {
     cl_int status = clEnqueueReadBuffer(_queues[0], _mem, CL_TRUE, offset, nbyte, buf, 0, NULL, NULL);
     CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue read buffer";
-};
+}
 
 int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count)
 {
@@ -162,7 +183,7 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count)
     }
 
     return 0;
-};
+}
 
 void IntelFOCLDevice::deinit()
 {
