@@ -50,7 +50,7 @@ class IntelFOCLDevice {
   size_t _alignment;
 
  public:
-  IntelFOCLDevice() { init(4 * 1024 * 1024 * 1024ULL, "vta_opencl.aocx"); }
+  IntelFOCLDevice() {}
 
   int init(size_t mem_size, std::string aocx_file);
 

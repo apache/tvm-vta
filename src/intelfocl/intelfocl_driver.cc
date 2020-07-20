@@ -21,6 +21,7 @@
 #include <vta/driver.h>
 #include <string>
 #include <iostream>
+#include <tvm/runtime/registry.h>
 
 #define MEM_ADDR_IDENTIFIER (0x18000000)
 
@@ -82,3 +83,13 @@ int VTADeviceRun(VTADeviceHandle handle, vta_phy_addr_t insn_phy_addr, uint32_t 
   ifocl_mem_off_t offset = (ifocl_mem_off_t)insn_phy_addr;
   return focl_device.execute_instructions(offset, insn_count);
 }
+
+using tvm::runtime::TVMRetValue;
+using tvm::runtime::TVMArgs;
+
+TVM_REGISTER_GLOBAL("vta.intelfocl.program")
+.set_body([](TVMArgs args, TVMRetValue* rv) {
+    std::string aocx = args[0];
+    int64_t mem_size = args[1];
+    focl_device.init(mem_size, aocx);
+});
