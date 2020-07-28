@@ -27,6 +27,8 @@
 
 static const char *kernel_names[] = {"vta_core"};
 
+/* Callback function required by aoclutils before crash exit
+ * not needed for our code, leave it blank */
 void cleanup() {}
 
 IntelFOCLDevice::IntelFOCLDevice() { init(); }
