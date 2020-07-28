@@ -41,18 +41,21 @@ typedef struct {
 
 class IntelFOCLDevice {
  private:
-  cl_context _context;
-  cl_program _program;
-  cl_mem _mem;
-  cl_kernel _kernels[NUM_OCL_KERNELS];
-  cl_command_queue _queues[NUM_OCL_KERNELS];
+  cl_context _context = NULL;
+  cl_device_id _device = NULL;
+  cl_program _program = NULL;
+  cl_mem _mem = NULL;
+  cl_kernel _kernels[NUM_OCL_KERNELS] = { NULL };
+  cl_command_queue _queues[NUM_OCL_KERNELS] = { NULL };
   std::list<mem_chunk_t> _mem_chunks;
   size_t _alignment;
 
  public:
-  IntelFOCLDevice() {}
+  IntelFOCLDevice();
 
-  int init(size_t mem_size, std::string aocx_file);
+  void init();
+
+  int setup(size_t mem_size, std::string aocx_file);
 
   ifocl_mem_off_t alloc(size_t size);
 

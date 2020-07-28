@@ -29,11 +29,12 @@ static const char *kernel_names[] = {"vta_core"};
 
 void cleanup() {}
 
-int IntelFOCLDevice::init(size_t mem_size, std::string aocx_file) {
+IntelFOCLDevice::IntelFOCLDevice() { init(); }
+
+void IntelFOCLDevice::init() {
   cl_int status;
   cl_device_id device;
   cl_platform_id platform;
-  unsigned int argi;
   bool focl_device_avail;
   unsigned int num_devices;
   aocl_utils::scoped_array<cl_device_id> devices;
@@ -55,8 +56,17 @@ int IntelFOCLDevice::init(size_t mem_size, std::string aocx_file) {
     }
   }
   CHECK(focl_device_avail) << "No FPGA device available";
-  num_devices = 1;
+  _device = device;
+}
 
+int IntelFOCLDevice::setup(size_t mem_size, std::string aocx_file) {
+  cl_int status;
+  cl_device_id device;
+  unsigned int argi;
+  unsigned int num_devices;
+
+  num_devices = 1;
+  device = _device;
   LOG(INFO) << "Using AOCX: " << aocx_file;
   _program = aocl_utils::createProgramFromBinary(_context, aocx_file.c_str(), &device, num_devices);
   status = clBuildProgram(_program, 0, NULL, "", NULL, NULL);
@@ -171,15 +181,20 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) 
 
 void IntelFOCLDevice::deinit() {
   for (unsigned int i = 0; i < NUM_OCL_KERNELS; i++) {
-    clReleaseKernel(_kernels[i]);
-    clReleaseCommandQueue(_queues[i]);
+    if ( _kernels[i] ) clReleaseKernel(_kernels[i]);
+    _kernels[i] = NULL;
+    if ( _queues[i] ) clReleaseCommandQueue(_queues[i]);
+    _queues[i] = NULL;
   }
 
-  clReleaseMemObject(_mem);
+  if ( _mem ) clReleaseMemObject(_mem);
+  _mem = NULL;
 
-  clReleaseProgram(_program);
+  if ( _program ) clReleaseProgram(_program);
+  _program = NULL;
 
-  clReleaseContext(_context);
+  if ( _context ) clReleaseContext(_context);
+  _context = NULL;
 }
 
 IntelFOCLDevice::~IntelFOCLDevice() { deinit(); }

@@ -19,9 +19,9 @@
 
 #include "intelfocl_device.h"
 #include <vta/driver.h>
+#include <tvm/runtime/registry.h>
 #include <string>
 #include <iostream>
-#include <tvm/runtime/registry.h>
 
 #define MEM_ADDR_IDENTIFIER (0x18000000)
 
@@ -91,5 +91,5 @@ TVM_REGISTER_GLOBAL("vta.intelfocl.program")
 .set_body([](TVMArgs args, TVMRetValue* rv) {
     std::string aocx = args[0];
     int64_t mem_size = args[1];
-    focl_device.init(mem_size, aocx);
+    focl_device.setup(mem_size, aocx);
 });
