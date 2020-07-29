@@ -5,12 +5,22 @@
 
 #define BITS(x, o, w) ((x) >> (o) & ((1ULL << (w)) - 1))
 
+#if VTA_LOG_INP_WIDTH != 3
+#error Only 8-bit inputs are supported
+#endif
+#if VTA_LOG_WGT_WIDTH != 3
+#error Only 8-bit weights are supported
+#endif
+#if VTA_LOG_ACC_WIDTH != 5
+#error Only 32-bit accumulators are supported
+#endif
+
 typedef unsigned int    uop_T;
 typedef char            inp_T;
 typedef char            wgt_T;
 typedef int             acc_T;
-typedef int             sum_T; // TODO:: actually it is 22 bit. use ap_uint?
-typedef int             mul_T; // TODO:: actually it is 17 bit. use ap_uint?
+typedef int             sum_T;
+typedef int             mul_T;
 typedef char            out_T;
 
 typedef struct

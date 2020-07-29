@@ -42,7 +42,7 @@ EMULATOR_PATH := $(BUILD_DIR)/$(CONF)/vta_opencl_emu.aocx
 
 all: bit
 bit: $(BIT_PATH)
-emu: $(EMULATOR_PATH)
+emulator: $(EMULATOR_PATH)
 
 $(BIT_PATH): $(SRC_DIR)/*
 	mkdir -p $(HW_BUILD_PATH)
