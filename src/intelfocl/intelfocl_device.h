@@ -53,7 +53,7 @@ class IntelFOCLDevice {
  public:
   IntelFOCLDevice();
 
-  void init();
+  void init(std::string platform_name);
 
   int setup(size_t mem_size, std::string aocx_file);
 

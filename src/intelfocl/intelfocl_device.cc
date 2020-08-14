@@ -20,64 +20,102 @@
 #include "intelfocl_device.h"
 #include <dmlc/logging.h>
 #include <vta/hw_spec.h>
+#include <cstring>
+#include <vector>
 #include <numeric>
-#include "aoclutils/aocl_utils.h"
 
 #define CL_STATUS_SUCCESS(x) ((x) == CL_SUCCESS)
 
 static const char *kernel_names[] = {"vta_core"};
 
-/* Callback function required by aoclutils before crash exit
- * not needed for our code, leave it blank */
-void cleanup() {}
+IntelFOCLDevice::IntelFOCLDevice() { init("Intel(R) FPGA SDK for OpenCL(TM)"); }
 
-IntelFOCLDevice::IntelFOCLDevice() { init(); }
-
-void IntelFOCLDevice::init() {
+void IntelFOCLDevice::init(std::string platform_name) {
   cl_int status;
-  cl_device_id device;
-  cl_platform_id platform;
-  bool focl_device_avail;
-  unsigned int num_devices;
-  aocl_utils::scoped_array<cl_device_id> devices;
+  cl_device_id *device;
+  cl_platform_id *platform;
+  cl_uint n;
+  size_t size;
+  std::vector<char> name;
+  std::vector<cl_platform_id> platforms;
+  std::vector<cl_device_id> devices;
 
-  platform = aocl_utils::findPlatform("Intel(R) FPGA SDK for OpenCL(TM)");
-  CHECK(platform) << "Unable to find Intel(R) FPGA OpenCL platform";
+  status = clGetPlatformIDs(0, NULL, &n);
+  CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query number of OpenCL platforms";
+  platforms.resize(n);
+  CHECK(platforms.size() > 0) << "No OpenCL platform available";
+  status = clGetPlatformIDs(platforms.size(), platforms.data(), NULL);
+  CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query OpenCL platform IDs";
 
-  devices.reset(aocl_utils::getDevices(platform, CL_DEVICE_TYPE_ALL, &num_devices));
-  focl_device_avail = false;
-  for (unsigned int i = 0; i < num_devices; i++) {
-    device = devices[i];
-    _context = clCreateContext(NULL, 1, &device, &aocl_utils::oclContextCallback, NULL, &status);
-    if (CL_STATUS_SUCCESS(status)) {
-      focl_device_avail = true;
-      LOG(INFO) << "Using device: " << aocl_utils::getDeviceName(device);
+  platform = NULL;
+  for (auto &id : platforms) {
+    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, NULL, &size);
+    if (!CL_STATUS_SUCCESS(status)) continue;
+    name.resize(size);
+    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, name.size(), name.data(), NULL);
+    if (!CL_STATUS_SUCCESS(status)) continue;
+
+    if (strstr(name.data(), platform_name.c_str()) != NULL) {
+      platform = &id;
       break;
-    } else {
-      LOG(INFO) << "FPGA Device " << i << " is not available. Skipped.";
     }
   }
-  CHECK(focl_device_avail) << "No FPGA device available";
-  _device = device;
+  CHECK(platform) << "Unable to find platform " << platform_name;
+
+  status = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_ALL, 0, NULL, &n);
+  CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query number of OpenCL devices";
+  devices.resize(n);
+  CHECK(devices.size() > 0) << "No OpenCL device found";
+  status = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_ALL, devices.size(), devices.data(), NULL);
+  CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query OpenCL devices IDs";
+
+  device = NULL;
+  for (auto &id : devices) {
+    _context = clCreateContext(NULL, 1, &id, NULL, NULL, &status);
+    if (CL_STATUS_SUCCESS(status)) {
+      status = clGetDeviceInfo(id, CL_DEVICE_NAME, 0, NULL, &size);
+      CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query OpenCL device info";
+      name.resize(size);
+      status = clGetDeviceInfo(id, CL_DEVICE_NAME, name.size(), name.data(), NULL);
+      CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query OpenCL device name";
+      LOG(INFO) << "Using FPGA device: " << name.data();
+      device = &id;
+      break;
+    } else {
+      LOG(INFO) << "This FPGA Device is not available. Skipped.";
+    }
+  }
+  CHECK(device) << "No FPGA device available";
+  _device = *device;
 }
 
 int IntelFOCLDevice::setup(size_t mem_size, std::string aocx_file) {
   cl_int status;
-  cl_device_id device;
   unsigned int argi;
-  unsigned int num_devices;
+  size_t size;
+  FILE *binary_file;
+  unsigned char *binary;
 
-  num_devices = 1;
-  device = _device;
   LOG(INFO) << "Using AOCX: " << aocx_file;
-  _program = aocl_utils::createProgramFromBinary(_context, aocx_file.c_str(), &device, num_devices);
-  status = clBuildProgram(_program, 0, NULL, "", NULL, NULL);
+  binary_file = std::fopen(aocx_file.c_str(), "rb");
+  CHECK(binary_file) << "Could not open bitstream file for reading";
+
+  std::fseek(binary_file, 0, SEEK_END);
+  size = std::ftell(binary_file);
+  std::fseek(binary_file, 0, SEEK_SET);
+  binary = new unsigned char[size];
+  std::fread(binary, 1, size, binary_file);
+  std::fclose(binary_file);
+
+  _program = clCreateProgramWithBinary(_context, 1, &_device, &size,
+                                       const_cast<const unsigned char **>(&binary), NULL, &status);
+  delete binary;
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to build program";
 
   for (unsigned int i = 0; i < NUM_OCL_KERNELS; i++) {
     _kernels[i] = clCreateKernel(_program, kernel_names[i], &status);
     CHECK(CL_STATUS_SUCCESS(status)) << "Failed to create kernel";
-    _queues[i] = clCreateCommandQueue(_context, device, 0, &status);
+    _queues[i] = clCreateCommandQueue(_context, _device, 0, &status);
     CHECK(CL_STATUS_SUCCESS(status)) << "Failed to create command queue";
   }
 
