@@ -45,8 +45,8 @@ class IntelFOCLDevice {
   cl_device_id _device = NULL;
   cl_program _program = NULL;
   cl_mem _mem = NULL;
-  cl_kernel _kernels[NUM_OCL_KERNELS] = { NULL };
-  cl_command_queue _queues[NUM_OCL_KERNELS] = { NULL };
+  cl_kernel _kernels[NUM_OCL_KERNELS] = {NULL};
+  cl_command_queue _queues[NUM_OCL_KERNELS] = {NULL};
   std::list<mem_chunk_t> _mem_chunks;
   size_t _alignment;
 

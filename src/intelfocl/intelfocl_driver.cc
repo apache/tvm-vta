@@ -87,9 +87,8 @@ int VTADeviceRun(VTADeviceHandle handle, vta_phy_addr_t insn_phy_addr, uint32_t 
 using tvm::runtime::TVMRetValue;
 using tvm::runtime::TVMArgs;
 
-TVM_REGISTER_GLOBAL("vta.intelfocl.program")
-.set_body([](TVMArgs args, TVMRetValue* rv) {
-    std::string aocx = args[0];
-    int64_t mem_size = args[1];
-    focl_device.setup(mem_size, aocx);
+TVM_REGISTER_GLOBAL("vta.intelfocl.program").set_body([](TVMArgs args, TVMRetValue* rv) {
+  std::string aocx = args[0];
+  int64_t mem_size = args[1];
+  focl_device.setup(mem_size, aocx);
 });

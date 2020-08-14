@@ -183,19 +183,19 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) 
 
 void IntelFOCLDevice::deinit() {
   for (unsigned int i = 0; i < NUM_OCL_KERNELS; i++) {
-    if ( _kernels[i] ) clReleaseKernel(_kernels[i]);
+    if (_kernels[i]) clReleaseKernel(_kernels[i]);
     _kernels[i] = NULL;
-    if ( _queues[i] ) clReleaseCommandQueue(_queues[i]);
+    if (_queues[i]) clReleaseCommandQueue(_queues[i]);
     _queues[i] = NULL;
   }
 
-  if ( _mem ) clReleaseMemObject(_mem);
+  if (_mem) clReleaseMemObject(_mem);
   _mem = NULL;
 
-  if ( _program ) clReleaseProgram(_program);
+  if (_program) clReleaseProgram(_program);
   _program = NULL;
 
-  if ( _context ) clReleaseContext(_context);
+  if (_context) clReleaseContext(_context);
   _context = NULL;
 }
 
