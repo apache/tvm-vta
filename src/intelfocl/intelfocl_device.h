@@ -20,9 +20,11 @@
 #ifndef _3RDPARTY_VTA_HW_SRC_INTELFOCL_INTELFOCL_DEVICE_H_
 #define _3RDPARTY_VTA_HW_SRC_INTELFOCL_INTELFOCL_DEVICE_H_
 
+#define CL_TARGET_OPENCL_VERSION 120
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#include <CL/opencl.h>
 #include <list>
 #include <string>
-#include "CL/opencl.h"
 
 #define IFOCL_MEM_OFF_ERR (SIZE_MAX)
 
