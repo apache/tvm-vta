@@ -198,6 +198,7 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) 
   unsigned int insn_offset = offset / VTA_INS_ELEM_BYTES;
   unsigned int insn_count = count;
   const size_t global_work_size = 1;
+  const size_t local_work_size = 1;
 
   argi = 0;
   status = clSetKernelArg(_kernels[KERNEL_VTA_CORE], argi++, sizeof(unsigned int), &insn_count);
@@ -206,8 +207,8 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) 
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to set argument " << argi;
 
   for (unsigned int i = 0; i < NUM_OCL_KERNELS; i++) {
-    status = clEnqueueNDRangeKernel(_queues[i], _kernels[i], 1, NULL, &global_work_size, NULL, 0,
-                                    NULL, NULL);
+    status = clEnqueueNDRangeKernel(_queues[i], _kernels[i], 1, NULL, &global_work_size,
+                                    &local_work_size, 0, NULL, NULL);
     CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue kernel";
   }
 
