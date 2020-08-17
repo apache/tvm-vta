@@ -17,20 +17,42 @@
  * under the License.
  */
 
-#include "intelfocl_device.h"
+#include "oclfpga_device.h"
 #include <dmlc/logging.h>
 #include <vta/hw_spec.h>
 #include <cstring>
-#include <vector>
 #include <numeric>
 
 #define CL_STATUS_SUCCESS(x) ((x) == CL_SUCCESS)
 
 static const char *kernel_names[] = {"vta_core"};
 
-IntelFOCLDevice::IntelFOCLDevice() { init("Intel(R) FPGA SDK for OpenCL(TM)"); }
+static cl_platform_id *find_platform(std::vector<cl_platform_id> *platforms,
+                                     const std::vector<std::string> &supported_platforms) {
+  cl_int status;
+  size_t size;
+  std::vector<char> name;
+  for (auto &id : *platforms) {
+    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, NULL, &size);
+    if (!CL_STATUS_SUCCESS(status)) continue;
+    name.resize(size);
+    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, name.size(), name.data(), NULL);
+    if (!CL_STATUS_SUCCESS(status)) continue;
+    for (auto &p : supported_platforms) {
+      if (strstr(name.data(), p.c_str()) != NULL) {
+        return &id;
+      }
+    }
+  }
+  return NULL;
+}
 
-void IntelFOCLDevice::init(std::string platform_name) {
+OCLFPGADevice::OCLFPGADevice() {
+  std::vector<std::string> supported_platforms = {"Intel(R) FPGA SDK for OpenCL(TM)", "Xilinx"};
+  init(supported_platforms);
+}
+
+void OCLFPGADevice::init(const std::vector<std::string> &supported_platforms) {
   cl_int status;
   cl_device_id *device;
   cl_platform_id *platform;
@@ -47,20 +69,8 @@ void IntelFOCLDevice::init(std::string platform_name) {
   status = clGetPlatformIDs(platforms.size(), platforms.data(), NULL);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query OpenCL platform IDs";
 
-  platform = NULL;
-  for (auto &id : platforms) {
-    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, NULL, &size);
-    if (!CL_STATUS_SUCCESS(status)) continue;
-    name.resize(size);
-    status = clGetPlatformInfo(id, CL_PLATFORM_NAME, name.size(), name.data(), NULL);
-    if (!CL_STATUS_SUCCESS(status)) continue;
-
-    if (strstr(name.data(), platform_name.c_str()) != NULL) {
-      platform = &id;
-      break;
-    }
-  }
-  CHECK(platform) << "Unable to find platform " << platform_name;
+  platform = find_platform(&platforms, supported_platforms);
+  CHECK(platform) << "Unable to find supported OpenCL platform";
 
   status = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_ALL, 0, NULL, &n);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to query number of OpenCL devices";
@@ -89,7 +99,7 @@ void IntelFOCLDevice::init(std::string platform_name) {
   _device = *device;
 }
 
-int IntelFOCLDevice::setup(size_t mem_size, std::string aocx_file) {
+int OCLFPGADevice::setup(size_t mem_size, std::string aocx_file) {
   cl_int status;
   unsigned int argi;
   size_t size;
@@ -144,7 +154,7 @@ int IntelFOCLDevice::setup(size_t mem_size, std::string aocx_file) {
   return 0;
 }
 
-ifocl_mem_off_t IntelFOCLDevice::alloc(size_t size) {
+focl_mem_off_t OCLFPGADevice::alloc(size_t size) {
   auto iter = _mem_chunks.begin();
   size_t aligned_size = ((size + _alignment - 1) / _alignment) * _alignment;
 
@@ -152,7 +162,7 @@ ifocl_mem_off_t IntelFOCLDevice::alloc(size_t size) {
     iter++;
   }
 
-  if (iter == _mem_chunks.end()) return IFOCL_MEM_OFF_ERR;
+  if (iter == _mem_chunks.end()) return FOCL_MEM_OFF_ERR;
 
   iter->occupied = true;
   if (iter->size != aligned_size) {
@@ -164,7 +174,7 @@ ifocl_mem_off_t IntelFOCLDevice::alloc(size_t size) {
   return iter->offset;
 }
 
-void IntelFOCLDevice::free(ifocl_mem_off_t offset) {
+void OCLFPGADevice::free(focl_mem_off_t offset) {
   auto iter = _mem_chunks.begin();
   while (iter != _mem_chunks.end() && iter->offset < offset) iter++;
 
@@ -181,18 +191,18 @@ void IntelFOCLDevice::free(ifocl_mem_off_t offset) {
   }
 }
 
-void IntelFOCLDevice::write_mem(ifocl_mem_off_t offset, const void *buf, size_t nbyte) {
+void OCLFPGADevice::write_mem(focl_mem_off_t offset, const void *buf, size_t nbyte) {
   cl_int status =
       clEnqueueWriteBuffer(_queues[0], _mem, CL_TRUE, offset, nbyte, buf, 0, NULL, NULL);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue write buffer";
 }
 
-void IntelFOCLDevice::read_mem(ifocl_mem_off_t offset, void *buf, size_t nbyte) {
+void OCLFPGADevice::read_mem(focl_mem_off_t offset, void *buf, size_t nbyte) {
   cl_int status = clEnqueueReadBuffer(_queues[0], _mem, CL_TRUE, offset, nbyte, buf, 0, NULL, NULL);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue read buffer";
 }
 
-int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) {
+int OCLFPGADevice::execute_instructions(focl_mem_off_t offset, size_t count) {
   cl_int status;
   unsigned int argi;
   unsigned int insn_offset = offset / VTA_INS_ELEM_BYTES;
@@ -220,7 +230,7 @@ int IntelFOCLDevice::execute_instructions(ifocl_mem_off_t offset, size_t count) 
   return 0;
 }
 
-void IntelFOCLDevice::deinit() {
+void OCLFPGADevice::deinit() {
   for (unsigned int i = 0; i < NUM_OCL_KERNELS; i++) {
     if (_kernels[i]) clReleaseKernel(_kernels[i]);
     _kernels[i] = NULL;
@@ -238,4 +248,4 @@ void IntelFOCLDevice::deinit() {
   _context = NULL;
 }
 
-IntelFOCLDevice::~IntelFOCLDevice() { deinit(); }
+OCLFPGADevice::~OCLFPGADevice() { deinit(); }

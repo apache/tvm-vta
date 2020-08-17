@@ -17,31 +17,32 @@
  * under the License.
  */
 
-#ifndef _3RDPARTY_VTA_HW_SRC_INTELFOCL_INTELFOCL_DEVICE_H_
-#define _3RDPARTY_VTA_HW_SRC_INTELFOCL_INTELFOCL_DEVICE_H_
+#ifndef _3RDPARTY_VTA_HW_SRC_OCLFPGA_OCLFPGA_DEVICE_H_
+#define _3RDPARTY_VTA_HW_SRC_OCLFPGA_OCLFPGA_DEVICE_H_
 
 #define CL_TARGET_OPENCL_VERSION 120
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include <CL/opencl.h>
 #include <list>
+#include <vector>
 #include <string>
 
-#define IFOCL_MEM_OFF_ERR (SIZE_MAX)
+#define FOCL_MEM_OFF_ERR (SIZE_MAX)
 
 enum kernel_index {
   KERNEL_VTA_CORE,
   NUM_OCL_KERNELS
 };
 
-typedef size_t ifocl_mem_off_t;
+typedef size_t focl_mem_off_t;
 
 typedef struct {
-  ifocl_mem_off_t offset;
+  focl_mem_off_t offset;
   size_t size;
   bool occupied;
 } mem_chunk_t;
 
-class IntelFOCLDevice {
+class OCLFPGADevice {
  private:
   cl_context _context = NULL;
   cl_device_id _device = NULL;
@@ -53,25 +54,25 @@ class IntelFOCLDevice {
   size_t _alignment;
 
  public:
-  IntelFOCLDevice();
+  OCLFPGADevice();
 
-  void init(std::string platform_name);
+  void init(const std::vector<std::string> &supported_platforms);
 
   int setup(size_t mem_size, std::string aocx_file);
 
-  ifocl_mem_off_t alloc(size_t size);
+  focl_mem_off_t alloc(size_t size);
 
-  void free(ifocl_mem_off_t offset);
+  void free(focl_mem_off_t offset);
 
-  void write_mem(ifocl_mem_off_t offset, const void *buf, size_t nbyte);
+  void write_mem(focl_mem_off_t offset, const void *buf, size_t nbyte);
 
-  void read_mem(ifocl_mem_off_t offset, void *buf, size_t nbyte);
+  void read_mem(focl_mem_off_t offset, void *buf, size_t nbyte);
 
-  int execute_instructions(ifocl_mem_off_t offset, size_t count);
+  int execute_instructions(focl_mem_off_t offset, size_t count);
 
   void deinit();
 
-  ~IntelFOCLDevice();
+  ~OCLFPGADevice();
 };
 
-#endif  // _3RDPARTY_VTA_HW_SRC_INTELFOCL_INTELFOCL_DEVICE_H_
+#endif  // _3RDPARTY_VTA_HW_SRC_OCLFPGA_OCLFPGA_DEVICE_H_
