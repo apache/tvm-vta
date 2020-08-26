@@ -16,7 +16,7 @@
 # under the License.
 
 # Check if script is running in correct Vivado version.
-set scripts_vivado_version 2018.3
+set scripts_vivado_version 2020.1
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -112,6 +112,7 @@ proc init_fifo_property {fifo width_bytes depth} {
 # Procedure to initialize BRAM
 proc init_bram_property {bram width depth} {
   set_property -dict [ list \
+    CONFIG.use_bram_block {Stand_Alone} \
     CONFIG.Assume_Synchronous_Clk {true} \
     CONFIG.Byte_Size {8} \
     CONFIG.Enable_32bit_Address {true} \
@@ -432,8 +433,6 @@ wait_on_run impl_1
 # Export hardware description file and bitstream files to export/ dir
 if {[file exist $proj_path/$proj_name.runs/impl_1/${proj_name}_wrapper.bit]} {
   file mkdir $proj_path/export
-  file copy -force $proj_path/$proj_name.runs/impl_1/${proj_name}_wrapper.sysdef \
-    $proj_path/export/vta.hdf
   file copy -force $proj_path/$proj_name.runs/impl_1/${proj_name}_wrapper.bit \
     $proj_path/export/vta.bit
 }
