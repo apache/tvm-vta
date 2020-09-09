@@ -52,6 +52,7 @@ def gen_target_cflags(pkg):
     return cflags_str
 
 def calculate_num_wgt_uram(pkg):
+    """Calculate number of weight uram from config"""
     if hasattr(pkg, 'num_wgt_mem_uram'):
         return pkg.num_wgt_mem_uram
     else:
