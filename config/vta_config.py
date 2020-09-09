@@ -116,8 +116,6 @@ def main():
                         help="print the target")
     parser.add_argument("--cfg-str", action="store_true",
                         help="print the configuration string")
-    parser.add_argument("--build-path", action="store_true",
-                        help="print build path")
     parser.add_argument("--get-inp-mem-banks", action="store_true",
                         help="returns number of input memory banks")
     parser.add_argument("--get-inp-mem-width", action="store_true",
@@ -216,9 +214,6 @@ def main():
 
     if args.cfg_str:
         print(pkg.TARGET + "_" + pkg.bitstream)
-
-    if args.build_path:
-        print(pkg.build_path)
 
     if args.get_inp_mem_banks:
         print(pkg.inp_mem_banks)
