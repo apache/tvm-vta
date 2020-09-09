@@ -32,6 +32,66 @@ def pkg_config(cfg):
     PkgConfig = libpkg["PkgConfig"]
     return PkgConfig(cfg)
 
+def gen_target_name(pkg):
+    """Emit target macro from config"""
+    if pkg.TARGET == "pynq":
+        return "VTA_TARGET_PYNQ"
+    elif pkg.TARGET == "de10nano":
+        return "VTA_TARGET_DE10_NANO"
+    elif pkg.TARGET == "ultra96":
+        return "VTA_TARGET_ULTRA96"
+    else:
+        return None
+
+def gen_target_cflags(pkg):
+    """Emit target cflags from config"""
+    cflags_str = " ".join(pkg.cflags)
+    target = gen_target_name(pkg)
+    if target:
+        cflags_str += " -D{}".format(target)
+    return cflags_str
+
+def calculate_num_wgt_uram(pkg):
+    if hasattr(pkg, 'num_wgt_mem_uram'):
+        return pkg.num_wgt_mem_uram
+    else:
+        return 0
+
+def gen_tcl_vivado(pkg, file):
+    """Export variables to tcl file"""
+    const_func = """proc const {name value} {
+    uplevel 1 [list set $name $value]
+    uplevel 1 [list trace var $name w {error constant ;#} ]
+}"""
+    with open(file, "w") as fo:
+        fo.write(const_func)
+        fo.write("\nconst CFLAGS \"{}\"".format(gen_target_cflags(pkg)))
+        fo.write("\nconst TARGET {}".format(pkg.TARGET))
+        fo.write("\nconst FPGA_DEVICE {}".format(pkg.fpga_device))
+        fo.write("\nconst FPGA_FAMILY {}".format(pkg.fpga_family))
+        fo.write("\nconst FPGA_PERIOD {}".format(pkg.fpga_per))
+        fo.write("\nconst FPGA_FREQ {}".format(pkg.fpga_freq))
+        fo.write("\nconst INP_MEM_AXI_RATIO {}".format(pkg.inp_mem_axi_ratio))
+        fo.write("\nconst WGT_MEM_AXI_RATIO {}".format(pkg.wgt_mem_axi_ratio))
+        fo.write("\nconst OUT_MEM_AXI_RATIO {}".format(pkg.out_mem_axi_ratio))
+        fo.write("\nconst INP_MEM_BANKS {}".format(pkg.inp_mem_banks))
+        fo.write("\nconst WGT_MEM_BANKS {}".format(pkg.wgt_mem_banks))
+        fo.write("\nconst OUT_MEM_BANKS {}".format(pkg.out_mem_banks))
+        fo.write("\nconst INP_MEM_WIDTH {}".format(pkg.inp_mem_width))
+        fo.write("\nconst WGT_MEM_WIDTH {}".format(pkg.wgt_mem_width))
+        fo.write("\nconst OUT_MEM_WIDTH {}".format(pkg.out_mem_width))
+        fo.write("\nconst INP_MEM_DEPTH {}".format(pkg.inp_mem_depth))
+        fo.write("\nconst WGT_MEM_DEPTH {}".format(pkg.wgt_mem_depth))
+        fo.write("\nconst OUT_MEM_DEPTH {}".format(pkg.out_mem_depth))
+        fo.write("\nconst NUM_WGT_MEM_URAM {}".format(calculate_num_wgt_uram(pkg)))
+        fo.write("\nconst AXI_CACHE_BITS {}".format(pkg.axi_cache_bits))
+        fo.write("\nconst AXI_PROT_BITS {}".format(pkg.axi_prot_bits))
+        fo.write("\nconst IP_REG_MAP_RANGE {}".format(pkg.ip_reg_map_range))
+        fo.write("\nconst FETCH_BASE_ADDR {}".format(pkg.fetch_base_addr))
+        fo.write("\nconst LOAD_BASE_ADDR {}".format(pkg.load_base_addr))
+        fo.write("\nconst COMPUTE_BASE_ADDR {}".format(pkg.compute_base_addr))
+        fo.write("\nconst STORE_BASE_ADDR {}".format(pkg.store_base_addr))
+
 def main():
     """Main funciton"""
     parser = argparse.ArgumentParser()
@@ -55,6 +115,8 @@ def main():
                         help="print the target")
     parser.add_argument("--cfg-str", action="store_true",
                         help="print the configuration string")
+    parser.add_argument("--build-path", action="store_true",
+                        help="print build path")
     parser.add_argument("--get-inp-mem-banks", action="store_true",
                         help="returns number of input memory banks")
     parser.add_argument("--get-inp-mem-width", action="store_true",
@@ -103,6 +165,8 @@ def main():
                         help="returns FPGA frequency")
     parser.add_argument("--get-fpga-per", action="store_true",
                         help="returns HLS target clock period")
+    parser.add_argument("--export-tcl", type=str, default="",
+                        help="export variables to tcl file")
     args = parser.parse_args()
 
     if len(sys.argv) == 1:
@@ -137,14 +201,7 @@ def main():
         print(" ".join(pkg.lib_source))
 
     if args.cflags:
-        cflags_str = " ".join(pkg.cflags)
-        if pkg.TARGET == "pynq":
-            cflags_str += " -DVTA_TARGET_PYNQ"
-        elif pkg.TARGET == "de10nano":
-            cflags_str += " -DVTA_TARGET_DE10_NANO"
-        elif pkg.TARGET == "ultra96":
-            cflags_str += " -DVTA_TARGET_ULTRA96"
-        print(cflags_str)
+        print(gen_target_cflags(pkg))
 
     if args.ldflags:
         print(" ".join(pkg.ldflags))
@@ -158,6 +215,9 @@ def main():
 
     if args.cfg_str:
         print(pkg.TARGET + "_" + pkg.bitstream)
+
+    if args.build_path:
+        print(pkg.build_path)
 
     if args.get_inp_mem_banks:
         print(pkg.inp_mem_banks)
@@ -196,10 +256,7 @@ def main():
         print(pkg.out_mem_axi_ratio)
 
     if args.get_num_wgt_mem_uram:
-        if hasattr(pkg, 'num_wgt_mem_uram'):
-            print(pkg.num_wgt_mem_uram)
-        else:
-            print(0)
+        print(calculate_num_wgt_uram(pkg))
 
     if args.get_axi_cache_bits:
         print(pkg.axi_cache_bits)
@@ -233,6 +290,9 @@ def main():
 
     if args.get_fpga_per:
         print(pkg.fpga_per)
+
+    if args.export_tcl:
+        gen_tcl_vivado(pkg, args.export_tcl)
 
 if __name__ == "__main__":
     main()

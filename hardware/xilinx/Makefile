@@ -34,6 +34,9 @@ CONF := $(shell python ${VTA_CONFIG} --cfg-str)
 IP_BUILD_PATH := $(BUILD_DIR)/hls/$(CONF)
 HW_BUILD_PATH := $(BUILD_DIR)/vivado/$(CONF)
 
+# Config files
+CONFIG_TCL = $(BUILD_DIR)/include/vta_config.tcl
+
 # IP file path
 IP_PATH := $(BUILD_DIR)/hls/$(CONF)/vta_compute/soln/impl/ip/xilinx_com_hls_compute_1_0.zip
 
@@ -46,14 +49,20 @@ all: bit
 ip: $(IP_PATH)
 bit: $(BIT_PATH)
 
-$(IP_PATH): $(SRC_DIR)/*
+$(BUILD_DIR)/include:
+	mkdir -p $@
+
+$(CONFIG_TCL): | $(BUILD_DIR)/include
+	python $(VTA_CONFIG) --export-tcl $@
+
+$(IP_PATH): $(SRC_DIR)/* $(CONFIG_TCL)
 	mkdir -p $(IP_BUILD_PATH)
 	cd $(IP_BUILD_PATH) && \
 		$(VIVADO_HLS) \
 		-f $(SCRIPT_DIR)/hls.tcl \
 		-tclargs \
 			$(VTA_HW_DIR) \
-			${VTA_CONFIG}
+			$(CONFIG_TCL)
 
 $(BIT_PATH): $(IP_PATH)
 	mkdir -p $(HW_BUILD_PATH)
@@ -63,7 +72,7 @@ $(BIT_PATH): $(IP_PATH)
 		-source $(SCRIPT_DIR)/vivado.tcl \
 		-tclargs \
 			$(BUILD_DIR)/hls/$(CONF) \
-			${VTA_CONFIG}
+			$(CONFIG_TCL)
 
 clean:
 	rm -rf *.out *.log
