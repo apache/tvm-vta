@@ -32,21 +32,24 @@ set src_dir "$root_dir/hardware/xilinx/src"
 set sim_dir "$root_dir/hardware/xilinx/sim"
 set test_dir "$root_dir/tests/hardware/common"
 
+# Source vta config variables
+source $vta_config
+
 # C define flags that we want to pass to the compiler
-set cflags [exec python $vta_config --cflags]
+set cflags $CFLAGS
 
 # Get the VTA configuration paramters
-set ::device        [exec python $vta_config --get-fpga-dev]
-set ::period        [exec python $vta_config --get-fpga-per]
+set ::device $FPGA_DEVICE
+set ::period $FPGA_PERIOD
 
 # Get the VTA SRAM reshape/partition factors to get all memories
 # to be of the same axi width.
-set ::inp_reshape_factor    [exec python $vta_config --get-inp-mem-axi-ratio]
-set ::inp_partition_factor  [exec python $vta_config --get-inp-mem-banks]
-set ::wgt_reshape_factor    [exec python $vta_config --get-wgt-mem-axi-ratio]
-set ::wgt_partition_factor  [exec python $vta_config --get-wgt-mem-banks]
-set ::out_reshape_factor    [exec python $vta_config --get-out-mem-axi-ratio]
-set ::out_partition_factor  [exec python $vta_config --get-out-mem-banks]
+set ::inp_reshape_factor    $INP_MEM_AXI_RATIO
+set ::inp_partition_factor  $INP_MEM_BANKS
+set ::wgt_reshape_factor    $WGT_MEM_AXI_RATIO
+set ::wgt_partition_factor  $WGT_MEM_BANKS
+set ::out_reshape_factor    $OUT_MEM_AXI_RATIO
+set ::out_partition_factor  $OUT_MEM_BANKS
 
 
 # Initializes the HLS design and sets HLS pragmas for memory partitioning.

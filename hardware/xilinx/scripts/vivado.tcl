@@ -35,33 +35,37 @@ if { [llength $argv] eq 2 } {
   return 1
 }
 
+# Source vta config variables
+source $vta_config
+
 # Get the VTA configuration paramters
-set target            [exec python $vta_config --target]
-set device_family     [exec python $vta_config --get-fpga-family]
-set clock_freq        [exec python $vta_config --get-fpga-freq]
+set target            $TARGET
+set device            $FPGA_DEVICE
+set device_family     $FPGA_FAMILY
+set clock_freq        $FPGA_FREQ
 
 # SRAM dimensions
-set inp_part          [exec python $vta_config --get-inp-mem-banks]
-set inp_mem_width     [exec python $vta_config --get-inp-mem-width]
-set inp_mem_depth     [exec python $vta_config --get-inp-mem-depth]
-set wgt_part          [exec python $vta_config --get-wgt-mem-banks]
-set wgt_mem_width     [exec python $vta_config --get-wgt-mem-width]
-set wgt_mem_depth     [exec python $vta_config --get-wgt-mem-depth]
-set out_part          [exec python $vta_config --get-out-mem-banks]
-set out_mem_width     [exec python $vta_config --get-out-mem-width]
-set out_mem_depth     [exec python $vta_config --get-out-mem-depth]
-set num_wgt_mem_uram  [exec python $vta_config --get-num-wgt-mem-uram]
+set inp_part          $INP_MEM_BANKS
+set inp_mem_width     $INP_MEM_WIDTH
+set inp_mem_depth     $INP_MEM_DEPTH
+set wgt_part          $WGT_MEM_BANKS
+set wgt_mem_width     $WGT_MEM_WIDTH
+set wgt_mem_depth     $WGT_MEM_DEPTH
+set out_part          $OUT_MEM_BANKS
+set out_mem_width     $OUT_MEM_WIDTH
+set out_mem_depth     $OUT_MEM_DEPTH
+set num_wgt_mem_uram  $NUM_WGT_MEM_URAM
 
 # AXI bus signals
-set axi_cache         [exec python $vta_config --get-axi-cache-bits]
-set axi_prot          [exec python $vta_config --get-axi-prot-bits]
+set axi_cache         $AXI_CACHE_BITS
+set axi_prot          $AXI_PROT_BITS
 
 # Address map
-set ip_reg_map_range  [exec python $vta_config --get-ip-reg-map-range]
-set fetch_base_addr   [exec python $vta_config --get-fetch-base-addr]
-set load_base_addr    [exec python $vta_config --get-load-base-addr]
-set compute_base_addr [exec python $vta_config --get-compute-base-addr]
-set store_base_addr   [exec python $vta_config --get-store-base-addr]
+set ip_reg_map_range  $IP_REG_MAP_RANGE
+set fetch_base_addr   $FETCH_BASE_ADDR
+set load_base_addr    $LOAD_BASE_ADDR
+set compute_base_addr $COMPUTE_BASE_ADDR
+set store_base_addr   $STORE_BASE_ADDR
 
 # Paths to IP library of VTA modules
 set proj_name vta
@@ -74,7 +78,6 @@ set compute_ip "${ip_path}/vta_compute/soln/impl/ip/xilinx_com_hls_compute_1_0.z
 set store_ip "${ip_path}/vta_store/soln/impl/ip/xilinx_com_hls_store_1_0.zip"
 
 # Create custom project
-set device [exec python $vta_config --get-fpga-dev]
 create_project -force $proj_name $proj_path -part $device
 
 # Update IP repository with generated IP
