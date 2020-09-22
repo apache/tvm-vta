@@ -88,7 +88,7 @@ using tvm::runtime::TVMRetValue;
 using tvm::runtime::TVMArgs;
 
 TVM_REGISTER_GLOBAL("vta.oclfpga.program").set_body([](TVMArgs args, TVMRetValue* rv) {
-  std::string aocx = args[0];
+  std::string bitstream = args[0];
   int64_t mem_size = args[1];
-  focl_device.setup(mem_size, aocx);
+  focl_device.setup(mem_size, bitstream);
 });

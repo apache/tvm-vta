@@ -99,15 +99,15 @@ void OCLFPGADevice::init(const std::vector<std::string> &supported_platforms) {
   _device = *device;
 }
 
-int OCLFPGADevice::setup(size_t mem_size, std::string aocx_file) {
+int OCLFPGADevice::setup(size_t mem_size, std::string bitstream_file) {
   cl_int status;
   unsigned int argi;
   size_t size;
   FILE *binary_file;
   unsigned char *binary;
 
-  LOG(INFO) << "Using AOCX: " << aocx_file;
-  binary_file = std::fopen(aocx_file.c_str(), "rb");
+  LOG(INFO) << "Using Bitstream: " << bitstream_file;
+  binary_file = std::fopen(bitstream_file.c_str(), "rb");
   CHECK(binary_file) << "Could not open bitstream file for reading";
 
   std::fseek(binary_file, 0, SEEK_END);

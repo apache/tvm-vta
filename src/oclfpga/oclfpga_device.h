@@ -58,7 +58,7 @@ class OCLFPGADevice {
 
   void init(const std::vector<std::string> &supported_platforms);
 
-  int setup(size_t mem_size, std::string aocx_file);
+  int setup(size_t mem_size, std::string bistream_file);
 
   focl_mem_off_t alloc(size_t size);
 
