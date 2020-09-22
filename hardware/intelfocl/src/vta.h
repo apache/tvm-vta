@@ -44,7 +44,7 @@ typedef char            out_T;
 
 typedef struct
 {
-    ulong w[2];
+  ulong w[2];
 } insn_T;
 
 #define OPCODE_OFFSET           (0)
