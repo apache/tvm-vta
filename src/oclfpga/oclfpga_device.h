@@ -64,11 +64,11 @@ class OCLFPGADevice {
 
   void free(focl_mem_off_t offset);
 
-  void write_mem(focl_mem_off_t offset, const void *buf, size_t nbyte);
+  void writeMem(focl_mem_off_t offset, const void *buf, size_t nbyte);
 
-  void read_mem(focl_mem_off_t offset, void *buf, size_t nbyte);
+  void readMem(focl_mem_off_t offset, void *buf, size_t nbyte);
 
-  int execute_instructions(focl_mem_off_t offset, size_t count);
+  int executeInstructions(focl_mem_off_t offset, size_t count);
 
   void deinit();
 

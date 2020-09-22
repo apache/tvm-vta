@@ -59,12 +59,12 @@ vta_phy_addr_t VTAMemGetPhyAddr(void* buf) {
 
 void VTAMemCopyFromHost(void* dst, const void* src, size_t size) {
   focl_mem_off_t dst_offset = mem_get_offset(dst);
-  focl_device.write_mem(dst_offset, src, size);
+  focl_device.writeMem(dst_offset, src, size);
 }
 
 void VTAMemCopyToHost(void* dst, const void* src, size_t size) {
   focl_mem_off_t src_offset = mem_get_offset(src);
-  focl_device.read_mem(src_offset, dst, size);
+  focl_device.readMem(src_offset, dst, size);
 }
 
 void VTAFlushCache(void* offset, vta_phy_addr_t buf, int size) {
@@ -83,7 +83,7 @@ int VTADeviceRun(VTADeviceHandle handle, vta_phy_addr_t insn_phy_addr, uint32_t 
                  uint32_t wait_cycles) {
   (void)wait_cycles;
   focl_mem_off_t offset = (focl_mem_off_t)insn_phy_addr;
-  return focl_device.execute_instructions(offset, insn_count);
+  return focl_device.executeInstructions(offset, insn_count);
 }
 
 using tvm::runtime::TVMRetValue;

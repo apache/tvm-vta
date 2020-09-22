@@ -191,18 +191,18 @@ void OCLFPGADevice::free(focl_mem_off_t offset) {
   }
 }
 
-void OCLFPGADevice::write_mem(focl_mem_off_t offset, const void *buf, size_t nbyte) {
+void OCLFPGADevice::writeMem(focl_mem_off_t offset, const void *buf, size_t nbyte) {
   cl_int status =
       clEnqueueWriteBuffer(_queues[0], _mem, CL_TRUE, offset, nbyte, buf, 0, NULL, NULL);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue write buffer";
 }
 
-void OCLFPGADevice::read_mem(focl_mem_off_t offset, void *buf, size_t nbyte) {
+void OCLFPGADevice::readMem(focl_mem_off_t offset, void *buf, size_t nbyte) {
   cl_int status = clEnqueueReadBuffer(_queues[0], _mem, CL_TRUE, offset, nbyte, buf, 0, NULL, NULL);
   CHECK(CL_STATUS_SUCCESS(status)) << "Failed to enqueue read buffer";
 }
 
-int OCLFPGADevice::execute_instructions(focl_mem_off_t offset, size_t count) {
+int OCLFPGADevice::executeInstructions(focl_mem_off_t offset, size_t count) {
   cl_int status;
   unsigned int argi;
   unsigned int insn_offset = offset / VTA_INS_ELEM_BYTES;
