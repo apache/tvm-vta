@@ -56,20 +56,28 @@ class OCLFPGADevice {
  public:
   OCLFPGADevice();
 
+  /* Initialize instance, create OpenCL context for supported platforms */
   void init(const std::vector<std::string> &supported_platforms);
 
+  /* Configure OCLFPGADevice device to be ready for VTA tasks */
   int setup(size_t mem_size, std::string bistream_file);
 
+  /* Allocate Memory on OCLFPGADevice */
   focl_mem_off_t alloc(size_t size);
 
+  /* Free Memory on OCLFPGADevice */
   void free(focl_mem_off_t offset);
 
+  /* Write to memory on OCLFPGADevice */
   void writeMem(focl_mem_off_t offset, const void *buf, size_t nbyte);
 
+  /* Read from memory on OCLFPGADevice */
   void readMem(focl_mem_off_t offset, void *buf, size_t nbyte);
 
+  /* Execute VTA instructions on OCLFPGADevice */
   int executeInstructions(focl_mem_off_t offset, size_t count);
 
+  /* De-initialize instance, release OpenCL resources */
   void deinit();
 
   ~OCLFPGADevice();
