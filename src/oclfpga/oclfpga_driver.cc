@@ -23,6 +23,8 @@
 #include <string>
 #include <iostream>
 
+/* This identifier is used to differentiate between offset and virtual
+ * address, it will prevent zero been returned as a valid address */
 #define MEM_ADDR_IDENTIFIER (0x18000000)
 
 static OCLFPGADevice focl_device;
