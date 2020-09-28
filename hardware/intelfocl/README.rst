@@ -52,6 +52,20 @@ For detailed usage of aoc/aocl command, please refer to `Intel FPGA SDK for Open
 VTA kernel compilation
 ^^^^^^^^^^^^^^^^^^^^^^
 
+To run TVM-VTA on Intel® OpenCL for FPGA™ compatible devices, firstly you need to configure the VTA target properly.
+
+.. code:: bash
+
+    $ cd <tvm root>/3rdparty/vta-hw/config
+    $ cp intelfocl_sample.json vta_config.py
+
+After updating vta_config, you need to re-compile the TVM:
+
+.. code:: bash
+
+    $ cd <tvm root>
+    $ make
+
 Before compiling your VTA kernel for Intel OpenCL for FPGA devices, you need to make sure all the required environment variables have been set correctly.
 
 .. code:: bash
@@ -83,20 +97,6 @@ If the hardware compilation is successful, the generated bitstream can be found 
 Test your compiled VTA kernel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To run TVM-VTA on your newly compiled kernel, you need to configure the VTA target properly.
-
-.. code:: bash
-
-    $ cd <tvm root>/3rdparty/vta-hw/config
-    $ cp intelfocl_sample.json vta_config.py
-
-Then you need to re-compile TVM:
-
-.. code:: bash
-
-    $ cd <tvm root>
-    $ make
-
 The intelfocl target uses a local RPC session and you need to program your FPGA acceleration card using the correct bitstream before any calculation. To configure that, make sure the following instructions is added to your python script.
 
 .. code:: python
@@ -120,7 +120,16 @@ Compile VTA kernel in Emulation Mode
 
 As hardware compilation takes hours or even days to compile, you can quickly verify your VTA design via software emulation mode. What's more, the running of emulation mode does not depend on actual hardware. That means you could try and test your design even without possession of an compatible Intel® OpenCL for FPGA™ acceleration card!
 
-To compile you VTA design for emulation, instead of the typing "make", you need to enter "make emulator" instead.
+As we are using emulation mode provided by Intel® OpenCL for FPGA™ SDK, we will still need to configure the VTA target to "intelfocl".
+
+.. code:: bash
+
+    $ cd <tvm root>/3rdparty/vta-hw/config
+    $ vim vta_config.py
+    $ cd <tvm root>
+    $ make
+
+To compile you VTA design for emulation, instead of the typing ``make``, you need to enter ``make emulator`` instead.
 
 .. code:: bash
 
@@ -150,6 +159,8 @@ This version of VTA design has been successfully tested on the following Intel®
 
 * Intel® Programmable Acceleration Card with Intel Arria® 10
 * Intel® FPGA Programmable Acceleration Card (Intel FPGA PAC) D5005
+* Intel Arria® 10 GX FPGA Development Kit
+* Intel Stratix® 10 GX FPGA Development Kit
 * 4Paradigm ATX800 Acceleration Card
 * 4Paradigm ATX810 Acceleration Card
 * 4Paradigm ATX900 Acceleration Card
