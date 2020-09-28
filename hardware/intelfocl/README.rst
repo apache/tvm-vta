@@ -97,7 +97,7 @@ If the hardware compilation is successful, the generated bitstream can be found 
 Test your compiled VTA kernel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The intelfocl target uses a local RPC session and you need to program your FPGA acceleration card using the correct bitstream before any calculation. To configure that, make sure the following instructions is added to your python script.
+The intelfocl target uses a local RPC session and you need to program your FPGA acceleration card using the correct bitstream before any calculation. To configure that, make sure the following instructions are added to your python script.
 
 .. code:: python
 
@@ -129,7 +129,7 @@ As we are using emulation mode provided by Intel® OpenCL for FPGA™ SDK, we wi
     $ cd <tvm root>
     $ make
 
-To compile you VTA design for emulation, instead of the typing ``make``, you need to enter ``make emulator`` instead.
+To compile you VTA design for emulation, instead of typing ``make``, you need to enter ``make emulator`` instead.
 
 .. code:: bash
 
