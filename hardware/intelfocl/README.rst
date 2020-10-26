@@ -49,7 +49,7 @@ To perform a simple test on your installed acceleration cards, you could use the
 
 For detailed usage of aoc/aocl command, please refer to `Intel FPGA SDK for OpenCL Programming Guide <https://www.intel.com/content/www/us/en/programmable/documentation/mwh1391807965224.html>`_.
 
-VTA kernel compilation
+VTA Kernel Compilation
 ^^^^^^^^^^^^^^^^^^^^^^
 
 To run TVM-VTA on Intel® OpenCL for FPGA™ compatible devices, firstly you need to configure the VTA target properly.
