@@ -26,5 +26,5 @@ fi
 
 cd tvm
 git fetch
-git checkout -B master origin/master
+git checkout -B main origin/main
 git submodule update --init --recursive
