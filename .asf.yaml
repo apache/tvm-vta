@@ -27,3 +27,14 @@ github:
     squash:  true
     rebase:  true
     merge:   false
+  protected_branches:
+    main:
+      required_status_checks:
+        strict: false
+        contexts:
+          - tvm-ci/pr-merge
+
+      required_pull_request_reviews:
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+        required_approving_review_count: 1
