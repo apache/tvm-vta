@@ -55,7 +55,7 @@ def load_model():
     with open("./build/model/params.params", "rb") as paramfile:
         param_bytes = paramfile.read()
 
-    categ_url = "https://github.com/uwsaml/web-data/raw/master/vta/models/"
+    categ_url = "https://github.com/uwsampl/web-data/raw/main/vta/models/"
     categ_fn = "synset.txt"
     download.download(join(categ_url, categ_fn), categ_fn)
     synset = eval(open(categ_fn).read())

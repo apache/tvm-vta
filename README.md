@@ -17,7 +17,7 @@
 
 VTA Hardware Design Stack
 =========================
-[![Build Status](https://ci.tlcpack.ai/job/tvm-vta/job/master/badge/icon)](https://ci.tlcpack.ai/job/tvm-vta/job/master/)
+[![Build Status](https://ci.tlcpack.ai/job/tvm-vta/job/main/badge/icon)](https://ci.tlcpack.ai/job/tvm-vta/job/main/)
 
 VTA (versatile tensor accelerator) is an open-source deep learning accelerator complemented with an end-to-end TVM-based compiler stack.
 
