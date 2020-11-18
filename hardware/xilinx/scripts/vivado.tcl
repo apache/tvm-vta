@@ -297,7 +297,7 @@ if { $device_family eq "zynq-7000" } {
   set maxi      [get_bd_intf_pins processing_system/M_AXI_GP0]
   set saxi      [get_bd_intf_pins processing_system/S_AXI_ACP]
 } elseif { $device_family eq "zynq-ultrascale+" } {
-  set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.2 processing_system ]
+  set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.3 processing_system ]
   set_property -dict [ list \
     CONFIG.PSU__FPGA_PL0_ENABLE {1} \
     CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {100} \
