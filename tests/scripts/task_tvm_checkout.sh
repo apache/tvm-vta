@@ -21,7 +21,7 @@ set -u
 
 if [ ! -d tvm ]; then
     echo "Checking out TVM"
-    git clone https://github.com/apache/incubator-tvm tvm
+    git clone https://github.com/apache/tvm tvm
 fi
 
 cd tvm
