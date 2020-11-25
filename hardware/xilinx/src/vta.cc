@@ -474,6 +474,11 @@ PRAGMA_HLS(HLS INTERFACE s_axilite port = done bundle = CONTROL_BUS offset = VTA
     // Initialize indices
     memop_sram_T sram_idx = insn.mem.sram_base;
     memop_dram_T dram_idx = insn.mem.dram_base;
+    memop_sram_T x_width =
+        (insn.mem.x_pad_0 + insn.mem.x_size + insn.mem.x_pad_1);
+    memop_sram_T y_offset_0 = x_width * insn.mem.y_pad_0;
+    memop_sram_T y_offset_1 = x_width * insn.mem.y_pad_1;
+
     if (insn.mem.memory_type == VTA_MEM_ID_UOP) {
       // Perform data transfer
       memcpy(&uop_mem[sram_idx],
@@ -481,14 +486,18 @@ PRAGMA_HLS(HLS INTERFACE s_axilite port = done bundle = CONTROL_BUS offset = VTA
              insn.mem.x_size * sizeof(uop_T));
     } else if (insn.mem.memory_type == VTA_MEM_ID_ACC) {
       // Perform data transfer from DRAM
-      load_2d<bus_T, ACC_MAT_AXI_RATIO, VTA_ACC_ELEM_BYTES>(
+      load_pad_2d<bus_T, ACC_MAT_AXI_RATIO, VTA_ACC_ELEM_BYTES>(
           biases,
           acc_mem,
           sram_idx,
           dram_idx,
           insn.mem.y_size,
           insn.mem.x_size,
-          insn.mem.x_stride);
+          insn.mem.x_stride,
+          insn.mem.x_pad_0,
+          insn.mem.x_pad_1,
+          y_offset_0,
+          y_offset_1);
     }
   } else if (insn.generic.opcode == VTA_OPCODE_GEMM) {
     gemm(raw_copy, uop_mem, acc_mem, inp_mem, wgt_mem, out_mem);
