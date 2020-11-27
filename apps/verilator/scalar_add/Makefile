@@ -20,13 +20,13 @@ VERILATOR_INC_DIR := $(abspath $(dir $(VERILATOR_BIN))/../share/verilator/includ
 TOP_NAME = "Top"
 VERILOG_DIR = $(abspath .)/verilog
 SRC_DIR = $(abspath .)/src
-WIDGET_DIR = $(abspath ..)
-TVM_DIR = $(abspath ../../..)
+ROOT_DIR = $(abspath ..)
+TVM_DIR = $(abspath ../../../../..)
 OUT_DIR = $(abspath .)/out
 
-default: $(WIDGET_DIR)/libverilator.so
+default: $(ROOT_DIR)/libverilator.so
 
-$(WIDGET_DIR)/libverilator.so: $(OUT_DIR)/$(TOP_NAME).cpp
+$(ROOT_DIR)/libverilator.so: $(OUT_DIR)/$(TOP_NAME).cpp
 	g++ \
 	-std=c++14 \
 	-O2 \
