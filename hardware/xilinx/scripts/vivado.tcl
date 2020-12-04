@@ -43,6 +43,8 @@ set target            $TARGET
 set device            $FPGA_DEVICE
 set device_family     $FPGA_FAMILY
 set clock_freq        $FPGA_FREQ
+set board             $FPGA_BOARD
+set board_rev         $FPGA_BOARD_REV
 
 # SRAM dimensions
 set inp_part          $INP_MEM_BANKS
@@ -79,6 +81,11 @@ set store_ip "${ip_path}/vta_store/soln/impl/ip/xilinx_com_hls_store_1_0.zip"
 
 # Create custom project
 create_project -force $proj_name $proj_path -part $device
+
+# Apply board preset if exists
+if {$board != "None" && $board_rev != "None"} {
+  set_property board_part $board:$board_rev [current_project]
+}
 
 # Update IP repository with generated IP
 file mkdir $ip_lib
@@ -298,10 +305,12 @@ if { $device_family eq "zynq-7000" } {
   set saxi      [get_bd_intf_pins processing_system/S_AXI_ACP]
 } elseif { $device_family eq "zynq-ultrascale+" } {
   set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.3 processing_system ]
+  apply_bd_automation -rule xilinx.com:bd_rule:zynq_ultra_ps_e -config {apply_board_preset "1" }  [get_bd_cells processing_system]
   set_property -dict [ list \
     CONFIG.PSU__FPGA_PL0_ENABLE {1} \
     CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {100} \
     CONFIG.PSU__USE__M_AXI_GP0 {1} \
+    CONFIG.PSU__USE__M_AXI_GP1 {0} \
     CONFIG.PSU__USE__M_AXI_GP2 {0} \
     CONFIG.PSU__USE__S_AXI_GP0 {1}
   ] $processing_system

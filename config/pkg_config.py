@@ -152,6 +152,8 @@ class PkgConfig(object):
         elif self.TARGET == "ultra96":
             self.fpga_device = "xczu3eg-sbva484-1-e"
             self.fpga_family = "zynq-ultrascale+"
+            self.fpga_board = None
+            self.fpga_board_rev = None
             self.fpga_freq = 333
             self.fpga_per = 2
             self.fpga_log_axi_bus_width = 7
@@ -165,6 +167,8 @@ class PkgConfig(object):
         elif self.TARGET == "zcu104":
             self.fpga_device = "xczu7ev-ffvc1156-2-e"
             self.fpga_family = "zynq-ultrascale+"
+            self.fpga_board = "xilinx.com:zcu104:part0"
+            self.fpga_board_rev = "1.1"
             self.fpga_freq = 333
             self.fpga_per = 2
             self.fpga_log_axi_bus_width = 7
@@ -179,6 +183,8 @@ class PkgConfig(object):
             # By default, we use the pynq parameters
             self.fpga_device = "xc7z020clg484-1"
             self.fpga_family = "zynq-7000"
+            self.fpga_board = None
+            self.fpga_board_rev = None
             self.fpga_freq = 100
             self.fpga_per = 7
             self.fpga_log_axi_bus_width = 6
