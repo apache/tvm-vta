@@ -190,9 +190,9 @@ class PkgConfig(object):
         self.fetch_insn_addr_offset = self.fetch_insn_count_offset + 0x08
         self.load_inp_addr_offset = 0x10
         self.load_wgt_addr_offset = self.load_inp_addr_offset + 0x08
-        self.compute_done_wr_offet = 0x10
-        self.compute_done_rd_offet = self.compute_done_wr_offet + 0x08
-        self.compute_uop_addr_offset = self.compute_done_rd_offet + 0x08
+        self.compute_done_wr_offset = 0x10
+        self.compute_done_rd_offset = self.compute_done_wr_offset + 0x08
+        self.compute_uop_addr_offset = self.compute_done_rd_offset + 0x08
         self.compute_bias_addr_offset = self.compute_uop_addr_offset + 0x08
         self.store_out_addr_offset = 0x10
 
@@ -266,9 +266,9 @@ class PkgConfig(object):
         self.macro_defs.append("-DVTA_LOAD_WGT_ADDR_OFFSET=%s" % \
                                (self.load_wgt_addr_offset))
         self.macro_defs.append("-DVTA_COMPUTE_DONE_WR_OFFSET=%s" % \
-                               (self.compute_done_wr_offet))
+                               (self.compute_done_wr_offset))
         self.macro_defs.append("-DVTA_COMPUTE_DONE_RD_OFFSET=%s" % \
-                               (self.compute_done_rd_offet))
+                               (self.compute_done_rd_offset))
         self.macro_defs.append("-DVTA_COMPUTE_UOP_ADDR_OFFSET=%s" % \
                                (self.compute_uop_addr_offset))
         self.macro_defs.append("-DVTA_COMPUTE_BIAS_ADDR_OFFSET=%s" % \
