@@ -67,7 +67,7 @@ echo "WORKSPACE: ${WORKSPACE}"
 echo "DOCKER CONTAINER NAME: ${DOCKER_IMAGE_NAME}"
 echo ""
 
-echo "Running '${COMMAND[@]}' inside ${DOCKER_IMAGE_NAME}..."
+echo "TESTING: Running '${COMMAND[@]}' inside ${DOCKER_IMAGE_NAME}..."
 
 # By default we cleanup - remove the container once it finish running (--rm)
 # and share the PID namespace (--pid=host) so the process inside does not have
