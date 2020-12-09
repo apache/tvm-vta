@@ -67,6 +67,7 @@ echo "WORKSPACE: ${WORKSPACE}"
 echo "DOCKER CONTAINER NAME: ${DOCKER_IMAGE_NAME}"
 echo ""
 
+# FIXME(zhanghao): re-enable the tsim test after ISA is updated
 if [[ ${COMMAND[@]}  == "./tests/scripts/task_python_vta_tsim.sh" ]]; then
   echo "Skip '${COMMAND[@]}'"
   exit
