@@ -40,6 +40,8 @@ def gen_target_name(pkg):
         return "VTA_TARGET_DE10_NANO"
     elif pkg.TARGET == "ultra96":
         return "VTA_TARGET_ULTRA96"
+    elif pkg.TARGET == "zcu104":
+        return "VTA_TARGET_ZCU104"
     else:
         return None
 
@@ -70,6 +72,8 @@ def gen_tcl_vivado(pkg, file):
         fo.write("\nconst TARGET {}".format(pkg.TARGET))
         fo.write("\nconst FPGA_DEVICE {}".format(pkg.fpga_device))
         fo.write("\nconst FPGA_FAMILY {}".format(pkg.fpga_family))
+        fo.write("\nconst FPGA_BOARD {}".format(pkg.fpga_board))
+        fo.write("\nconst FPGA_BOARD_REV {}".format(pkg.fpga_board_rev))
         fo.write("\nconst FPGA_PERIOD {}".format(pkg.fpga_per))
         fo.write("\nconst FPGA_FREQ {}".format(pkg.fpga_freq))
         fo.write("\nconst INP_MEM_AXI_RATIO {}".format(pkg.inp_mem_axi_ratio))
@@ -158,6 +162,10 @@ def main():
                         help="returns store module base address")
     parser.add_argument("--get-fpga-dev", action="store_true",
                         help="returns FPGA device target")
+    parser.add_argument("--get-fpga-board", action="store_true",
+                        help="returns FPGA board")
+    parser.add_argument("--get-fpga-board-rev", action="store_true",
+                        help="returns FPGA board version")
     parser.add_argument("--get-fpga-family", action="store_true",
                         help="returns FPGA device family")
     parser.add_argument("--get-fpga-freq", action="store_true",
@@ -280,6 +288,12 @@ def main():
 
     if args.get_fpga_family:
         print(pkg.fpga_family)
+
+    if args.get_fpga_board:
+        print(pkg.fpga_board)
+
+    if args.get_fpga_board_rev:
+        print(pkg.fpga_board_rev)
 
     if args.get_fpga_freq:
         print(pkg.fpga_freq)
