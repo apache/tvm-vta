@@ -28,7 +28,7 @@ ifeq (${TARGET}, sim)
 	VTA_LIB=vta_fsim
 endif
 
-PKG_CFLAGS = -std=c++11 -O0 -g -fPIC\
+PKG_CFLAGS = -std=c++14 -O0 -g -fPIC\
 						 -I${TVM_ROOT}/include\
 						 -I${TVM_ROOT}/vta/include\
 						 -I${DMLC_CORE}/include\
