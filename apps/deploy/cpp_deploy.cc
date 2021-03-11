@@ -73,13 +73,16 @@ void graph_test(std::string img,
   tvm::runtime::PackedFunc get_input = mod.GetFunction("get_input");
   x = get_input(0);
   VTACommandHandle cmd;
-  char * vta_ptr = (char *)VTABufferCPUPtr(cmd, static_cast<void*>(x->data));
 
   int in_ndim = 4;
   int64_t in_shape[4] = {1, 3, 224, 224};
+  size_t data_len = 3 * 224 * 224 * 4;
   // load image data saved in binary
   std::ifstream data_fin(img.c_str(), std::ios::binary);
-  data_fin.read(static_cast<char*>(vta_ptr), 3 * 224 * 224 * 4);
+  char * data = (char *) malloc(data_len);
+  data_fin.read(data, data_len);
+  TVMArrayCopyFromBytes(x, data, data_len);
+  free(data);
   // get the function from the module(load parameters)
   tvm::runtime::PackedFunc load_params = mod.GetFunction("load_params");
   load_params(params_arr);
