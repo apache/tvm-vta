@@ -61,7 +61,7 @@ def merge_transform_to_mxnet_model(mod):
     entry = mod["main"]
     anf = run_opt_pass(entry.body, transform.ToANormalForm())
     call = anf.value
-    data, weights = call.args
+    call_data, weights = call.args
     first_op = op.nn.conv2d(
         simple_net,
         weights,
@@ -73,9 +73,25 @@ def merge_transform_to_mxnet_model(mod):
         kernel_size=call.attrs.kernel_size,
         out_dtype=call.attrs.out_dtype)
     net = relay.expr.Let(anf.var, first_op, anf.body)
-    net = run_opt_pass(net, transform.ToGraphNormalForm())
+    new_params = [data]
+    for indx in range(len(entry.params)):
+        '''
+        By pass first parameter which is input data and get replace with
+        new data format(from (1, 224, 224, 3) to (224,224,3))
+        '''
+        if (indx > 0):
+            new_params.append(entry.params[indx])
+    '''
+    Add param information to fix free varaible found error
+    '''
+    func = tvm.relay.Function(new_params,
+                              net,
+                              entry.ret_type,
+                              entry.type_params,
+                              entry.attrs)
+    func = run_opt_pass(func, transform.ToGraphNormalForm())
 
-    mod['main'] = net
+    mod['main'] = func
     return mod
 
 def compile_mxnet_gulon_resnet(_env, _model):
