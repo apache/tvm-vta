@@ -33,7 +33,7 @@ trait ISAConstants {
   val OP_BITS = 3
 
   val M_DEP_BITS = 4
-  val M_ID_BITS = 2
+  val M_ID_BITS = 3
   val M_SRAM_OFFSET_BITS = 16
   val M_DRAM_OFFSET_BITS = 32
   val M_SIZE_BITS = 16
@@ -67,6 +67,7 @@ trait ISAConstants {
   val M_ID_W = 1.asUInt(M_ID_BITS.W)
   val M_ID_I = 2.asUInt(M_ID_BITS.W)
   val M_ID_A = 3.asUInt(M_ID_BITS.W)
+  val M_ID_O = 4.asUInt(M_ID_BITS.W)
 }
 
 /** ISA.
@@ -82,7 +83,7 @@ object ISA {
   private val depBits = 4
 
   private val idBits: HashMap[String, Int] =
-    HashMap(("task", 3), ("mem", 2), ("alu", 2))
+    HashMap(("task", 3), ("mem", 3), ("alu", 3))
 
   private val taskId: HashMap[String, String] =
     HashMap(("load", "000"),
@@ -92,13 +93,13 @@ object ISA {
       ("alu", "100"))
 
   private val memId: HashMap[String, String] =
-    HashMap(("uop", "00"), ("wgt", "01"), ("inp", "10"), ("acc", "11"))
+    HashMap(("uop", "000"), ("wgt", "001"), ("inp", "010"), ("acc", "011"), ("out", "100"))
 
   private val aluId: HashMap[String, String] =
-    HashMap(("minpool", "00"),
-      ("maxpool", "01"),
-      ("add", "10"),
-      ("shift", "11"))
+    HashMap(("minpool", "000"),
+      ("maxpool", "001"),
+      ("add", "010"),
+      ("shift", "011"))
 
   private def dontCare(bits: Int): String = "?" * bits
 
@@ -124,7 +125,7 @@ object ISA {
 
   private def alu(id: String): BitPat = {
     // TODO: move alu id next to task id
-    val inst = dontCare(18) + aluId(id) + dontCare(105) + taskId("alu")
+    val inst = dontCare(17) + aluId(id) + dontCare(105) + taskId("alu")
     instPat(inst)
   }
 

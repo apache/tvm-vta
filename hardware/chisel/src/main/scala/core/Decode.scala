@@ -43,7 +43,7 @@ class MemDecode extends Bundle {
   val xstride = UInt(M_STRIDE_BITS.W)
   val xsize = UInt(M_SIZE_BITS.W)
   val ysize = UInt(M_SIZE_BITS.W)
-  val empty_0 = UInt(7.W) // derive this
+  val empty_0 = UInt(6.W) // derive this
   val dram_offset = UInt(M_DRAM_OFFSET_BITS.W)
   val sram_offset = UInt(M_SRAM_OFFSET_BITS.W)
   val id = UInt(M_ID_BITS.W)
@@ -90,12 +90,11 @@ class GemmDecode extends Bundle {
  *   - VSHX
  */
 class AluDecode extends Bundle {
-  val empty_1 = Bool()
   val alu_imm = UInt(C_ALU_IMM_BITS.W)
   val alu_use_imm = Bool()
-  val alu_op = UInt(C_ALU_DEC_BITS.W)
-  val src_1 = UInt(C_IIDX_BITS.W)
-  val src_0 = UInt(C_IIDX_BITS.W)
+  val alu_op = UInt(C_ALU_OP_BITS.W)
+  val src_1 = UInt(C_AIDX_BITS.W)
+  val src_0 = UInt(C_AIDX_BITS.W)
   val dst_1 = UInt(C_AIDX_BITS.W)
   val dst_0 = UInt(C_AIDX_BITS.W)
   val empty_0 = Bool()
