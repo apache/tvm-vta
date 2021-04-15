@@ -215,7 +215,7 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
   io.uop.idx.valid := state === sReadUop
   io.uop.idx.bits := uop_idx
 
-  // acc_i
+  // acc (input)
   io.acc.rd.idx.valid := state === sReadTensorA | (state === sReadTensorB & ~dec.alu_use_imm)
   io.acc.rd.idx.bits := Mux(state === sReadTensorA, uop_dst, uop_src)
 
@@ -244,7 +244,7 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
     tensorImm.data.bits,
     io.acc.rd.data.bits)
 
-  // acc_o
+  // acc (output)
   io.acc.wr.valid := alu.io.acc_y.data.valid
   io.acc.wr.bits.idx := uop_dst
   io.acc.wr.bits.data <> alu.io.acc_y.data.bits
