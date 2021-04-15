@@ -231,9 +231,9 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
 
   // alu
   val isSHR = dec.alu_op === ALU_OP(3)
-  val neg_shift = isSHR & dec.alu_imm(C_ALU_IMM_BITS - 1)
+  val isSHL = isSHR & dec.alu_imm(C_ALU_IMM_BITS - 1)
   // opcode - min:0, max:1, add:2, shr:3, shl:4
-  val fixme_alu_op = Cat(neg_shift, Mux(neg_shift, 0.U, dec.alu_op(1, 0)))
+  val fixme_alu_op = Cat(isSHL, Mux(isSHL, 0.U, dec.alu_op(1, 0)))
   alu.io.opcode := fixme_alu_op
   alu.io.acc_a.data.valid := io.acc.rd.data.valid & state === sReadTensorB
   alu.io.acc_a.data.bits <> io.acc.rd.data.bits
