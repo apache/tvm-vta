@@ -39,6 +39,7 @@ class Alu(implicit p: Parameters) extends Module {
   val m = ~ub(width - 1, 0) + 1.U
 
   val n = ub(width - 1, 0)
+  // opcode - min:0, max:1, add:2, shr:3, shl:4
   val fop = Seq(Mux(io.a < io.b, io.a, io.b), Mux(io.a < io.b, io.b, io.a),
     io.a + io.b, io.a >> n, io.a << m)
 
@@ -214,7 +215,7 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
   io.uop.idx.valid := state === sReadUop
   io.uop.idx.bits := uop_idx
 
-  // acc_i
+  // acc (input)
   io.acc.rd.idx.valid := state === sReadTensorA | (state === sReadTensorB & ~dec.alu_use_imm)
   io.acc.rd.idx.bits := Mux(state === sReadTensorA, uop_dst, uop_src)
 
@@ -230,8 +231,9 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
 
   // alu
   val isSHR = dec.alu_op === ALU_OP(3)
-  val neg_shift = isSHR & dec.alu_imm(C_ALU_IMM_BITS - 1)
-  val fixme_alu_op = Cat(neg_shift, Mux(neg_shift, 0.U, dec.alu_op))
+  val isSHL = isSHR & dec.alu_imm(C_ALU_IMM_BITS - 1)
+  // opcode - min:0, max:1, add:2, shr:3, shl:4
+  val fixme_alu_op = Cat(isSHL, Mux(isSHL, 0.U, dec.alu_op(1, 0)))
   alu.io.opcode := fixme_alu_op
   alu.io.acc_a.data.valid := io.acc.rd.data.valid & state === sReadTensorB
   alu.io.acc_a.data.bits <> io.acc.rd.data.bits
@@ -242,7 +244,7 @@ class TensorAlu(debug: Boolean = false)(implicit p: Parameters) extends Module {
     tensorImm.data.bits,
     io.acc.rd.data.bits)
 
-  // acc_o
+  // acc (output)
   io.acc.wr.valid := alu.io.acc_y.data.valid
   io.acc.wr.bits.idx := uop_dst
   io.acc.wr.bits.data <> alu.io.acc_y.data.bits
