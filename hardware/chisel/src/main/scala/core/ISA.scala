@@ -46,7 +46,7 @@ trait ISAConstants {
   val C_AIDX_BITS = 11
   val C_IIDX_BITS = 11
   val C_WIDX_BITS = 10
-  val C_ALU_DEC_BITS = 2 // FIXME: there should be a SHL and SHR instruction
+  val C_ALU_DEC_BITS = 2
   val C_ALU_OP_BITS = 3
   val C_ALU_IMM_BITS = 16
 
