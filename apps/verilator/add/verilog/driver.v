@@ -17,6 +17,10 @@
  * under the License.
  */
 
+`ifndef LANES
+`define LANES 1
+`endif
+
 module driver (
     input  logic          clock,
     input  logic          reset,
@@ -27,69 +31,63 @@ module driver (
     output logic [32-1:0] out
 );
 
+    function void write_cc;
+        input int value;
+        input int addr;
+        begin
+            driver.dut.cc[32*addr+:32] = value;
+        end
+    endfunction
+
+    function int read_cc;
+        input int addr;
+        begin
+            return driver.dut.cc[32*addr+:32];
+        end
+    endfunction
+
     function void write_reg_a;
         input int value;
         input int addr;
-        logic [31:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.ra;
-            tmp[addr*32+:32] = value;
-            driver.dut.ra = tmp[0+:32];
+            driver.dut.ra[32*addr+:32] = value;
         end
     endfunction
 
     function int read_reg_a;
         input int addr;
-        logic [32-1:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.ra;
-            return tmp[addr*32+:32];
+            return driver.dut.ra[32*addr+:32];
         end
     endfunction
 
     function void write_reg_b;
         input int value;
         input int addr;
-        logic [31:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.rb;
-            tmp[addr*32+:32] = value;
-            driver.dut.rb = tmp[0+:32];
+            driver.dut.rb[32*addr+:32] = value;
         end
     endfunction
 
     function int read_reg_b;
         input int addr;
-        logic [32-1:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.rb;
-            return tmp[addr*32+:32];
+            return driver.dut.rb[32*addr+:32];
         end
     endfunction
 
     function void write_reg_y;
         input int value;
         input int addr;
-        logic [31:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.ry;
-            tmp[addr*32+:32] = value;
-            driver.dut.ry = tmp[0+:32];
+            driver.dut.ry[32*addr+:32] = value;
         end
     endfunction
 
     function int read_reg_y;
         input int addr;
-        logic [32-1:0] tmp;
         begin
-            tmp[0+:32] = 0;
-            tmp[0+:32] = driver.dut.ry;
-            return tmp[addr*32+:32];
+            return driver.dut.ry[32*addr+:32];
         end
     endfunction
 
@@ -98,24 +96,23 @@ module driver (
             32'd0 : out = 32'hdeadbeef;
             32'd1 : begin
                 case(id)
-                    32'd0 : write_reg_a(in, addr);
-                    32'd1 : write_reg_b(in, addr);
-                    32'd2 : write_reg_y(in, addr);
-                    default : $error("invalid id");
+                    32'd0 : write_cc(in, addr);
+                    32'd1 : write_reg_a(in, addr);
+                    32'd2 : write_reg_b(in, addr);
+                    32'd3 : write_reg_y(in, addr);
                 endcase
             end
             32'd2 : begin
                 case(id)
-                    32'd0 : out = read_reg_a(addr);
-                    32'd1 : out = read_reg_b(addr);
-                    32'd2 : out = read_reg_y(addr);
-                    default : $error("invalid id");
+                    32'd0 : out = read_cc(addr);
+                    32'd1 : out = read_reg_a(addr);
+                    32'd2 : out = read_reg_b(addr);
+                    32'd3 : out = read_reg_y(addr);
                 endcase
             end
-            default : $error("invalid opcode");
         endcase
     end
 
-    scalar_add dut (.clock(clock), .reset(reset));
+    add #(.LANES(`LANES)) dut (.clock(clock), .reset(reset));
 
 endmodule
