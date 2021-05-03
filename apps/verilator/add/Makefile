@@ -18,20 +18,24 @@
 VERILATOR_BIN := $(shell which verilator)
 VERILATOR_INC_DIR := $(abspath $(dir $(VERILATOR_BIN))/../share/verilator/include)
 TOP_NAME = "Top"
+LIB_NAME = "libverilator"
 VERILOG_DIR = $(abspath .)/verilog
 SRC_DIR = $(abspath .)/src
-ROOT_DIR = $(abspath ..)
+ROOT_DIR = $(abspath .)
 TVM_DIR = $(abspath ../../../../..)
 OUT_DIR = $(abspath .)/out
+LANES = 1
+LIB_PATH = $(ROOT_DIR)/$(LIB_NAME).so
 
-default: $(ROOT_DIR)/libverilator.so
+default: $(LIB_PATH)
 
-$(ROOT_DIR)/libverilator.so: $(OUT_DIR)/$(TOP_NAME).cpp
+$(LIB_PATH): $(OUT_DIR)/$(TOP_NAME).cpp
 	g++ \
 	-std=c++14 \
 	-O2 \
 	-shared \
 	-fPIC \
+	-DLANES=$(LANES) \
 	-I$(TVM_DIR)/src/runtime/contrib/verilator \
 	-I$(TVM_DIR)/include \
 	-I$(TVM_DIR)/3rdparty/dlpack/include \
@@ -49,6 +53,7 @@ $(OUT_DIR)/$(TOP_NAME).cpp: $(VERILOG_DIR)/*.v
 	-Wno-STMTDLY \
 	-Wno-WIDTH \
 	-Wno-UNOPTFLAT \
+	-DLANES=$(LANES) \
 	--cc \
 	--prefix $(TOP_NAME) \
 	--top-module "driver" \
@@ -56,4 +61,4 @@ $(OUT_DIR)/$(TOP_NAME).cpp: $(VERILOG_DIR)/*.v
 	$^
 
 clean:
-	-rm -rf $(OUT_DIR)
+	-rm -rf $(OUT_DIR) *.so

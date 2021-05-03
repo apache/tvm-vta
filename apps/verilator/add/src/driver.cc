@@ -28,14 +28,14 @@ namespace runtime {
 namespace contrib {
 
 extern "C" VerilatorHandle VerilatorAlloc() {
-  Top *top = new Top;
+  Top* top = new Top;
   return static_cast<VerilatorHandle>(top);
 }
 
-extern "C" void VerilatorDealloc(VerilatorHandle handle) { delete static_cast<Top *>(handle); }
+extern "C" void VerilatorDealloc(VerilatorHandle handle) { delete static_cast<Top*>(handle); }
 
 extern "C" int VerilatorRead(VerilatorHandle handle, int id, int addr) {
-  Top *top = static_cast<Top *>(handle);
+  Top* top = static_cast<Top*>(handle);
   top->opcode = 2;
   top->id = id;
   top->addr = addr;
@@ -44,7 +44,7 @@ extern "C" int VerilatorRead(VerilatorHandle handle, int id, int addr) {
 }
 
 extern "C" void VerilatorWrite(VerilatorHandle handle, int id, int addr, int value) {
-  Top *top = static_cast<Top *>(handle);
+  Top* top = static_cast<Top*>(handle);
   top->opcode = 1;
   top->id = id;
   top->addr = addr;
@@ -53,12 +53,12 @@ extern "C" void VerilatorWrite(VerilatorHandle handle, int id, int addr, int val
 }
 
 extern "C" void VerilatorReset(VerilatorHandle handle, int n) {
-  Top *top = static_cast<Top *>(handle);
+  Top* top = static_cast<Top*>(handle);
+  top->opcode = 0;
   top->clock = 0;
   top->reset = 1;
   main_time = 0;
-  while (!Verilated::gotFinish() &&
-         main_time < static_cast<vluint64_t>(n * 10)) {
+  while (!Verilated::gotFinish() && main_time < static_cast<vluint64_t>(n * 10)) {
     if ((main_time % 10) == 1) {
       top->clock = 1;
     }
@@ -72,11 +72,11 @@ extern "C" void VerilatorReset(VerilatorHandle handle, int n) {
 }
 
 extern "C" void VerilatorRun(VerilatorHandle handle, int n) {
-  Top *top = static_cast<Top *>(handle);
+  Top* top = static_cast<Top*>(handle);
+  top->opcode = 0;
   top->clock = 0;
   main_time = 0;
-  while (!Verilated::gotFinish() &&
-         main_time < static_cast<vluint64_t>(n * 10)) {
+  while (!Verilated::gotFinish() && main_time < static_cast<vluint64_t>(n * 10)) {
     if ((main_time % 10) == 1) {
       top->clock = 1;
     }
