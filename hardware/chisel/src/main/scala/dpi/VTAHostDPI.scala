@@ -71,7 +71,7 @@ class VTAHostDPI extends BlackBox with HasBlackBoxResource {
     val reset = Input(Bool())
     val dpi = new VTAHostDPIMaster
   })
-  setResource("/verilog/VTAHostDPI.v")
+  addResource("/verilog/VTAHostDPI.v")
 }
 
 /** Host DPI to AXI Converter.
