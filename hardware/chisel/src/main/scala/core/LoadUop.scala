@@ -205,7 +205,8 @@ class LoadUop(debug: Boolean = false)(implicit p: Parameters) extends Module {
   // read-from-sram
   io.uop.data.valid := RegNext(io.uop.idx.valid)
 
-  val sIdx = io.uop.idx.bits % numUop.U
+  // delay LSB of idx by a cycle because of the one-cycle memory read latency
+  val sIdx = RegNext(io.uop.idx.bits % numUop.U)
   val rIdx = io.uop.idx.bits >> log2Ceil(numUop)
   val memRead = mem.read(rIdx, io.uop.idx.valid)
   val sWord = memRead.asUInt.asTypeOf(wdata)
