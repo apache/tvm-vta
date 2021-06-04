@@ -32,6 +32,7 @@ class CoreConfig extends Config((site, here, up) => {
     CoreParams(
       batch = 1,
       blockOut = 16,
+      blockOutFactor = 1,
       blockIn = 16,
       inpBits = 8,
       wgtBits = 8,
