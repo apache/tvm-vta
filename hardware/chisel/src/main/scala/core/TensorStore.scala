@@ -47,6 +47,9 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
   val memBlockBits = tp.memBlockBits
   val memDepth = tp.memDepth
   val numMemBlock = tp.numMemBlock
+  require(numMemBlock > 0, s"-F- TensorStore doesnt support pulse width" +
+    s"wider than tensor width. Needed for stride support tensorWidth=${tensorWidth}")
+  require(tp.splitWidth == 1 && tp.splitLength == 1, s"-F- ${tensorType} Cannot do split direct access")
 
   val dec = io.inst.asTypeOf(new MemDecode)
   val waddr_cur = Reg(chiselTypeOf(io.vme_wr.cmd.bits.addr))
@@ -54,7 +57,7 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
   val xcnt = Reg(chiselTypeOf(io.vme_wr.cmd.bits.len))
   val xlen = Reg(chiselTypeOf(io.vme_wr.cmd.bits.len))
   val xrem = Reg(chiselTypeOf(dec.xsize))
-  val xsize = (dec.xsize << log2Ceil(tensorLength * numMemBlock)) - 1.U
+  val xsize = (dec.xsize << log2Ceil(tensorLength * numMemBlock))
   val xmax = (1 << mp.lenBits).U
   val xmax_bytes = ((1 << mp.lenBits) * mp.dataBits / 8).U
   val ycnt = Reg(chiselTypeOf(dec.ysize))
@@ -89,10 +92,12 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
       when (io.start) {
         state := sWriteCmd
         when (xsize < xfer_init_pulses) {
-          xlen := xsize
+          assert(xsize > 0.U)
+          xlen := xsize - 1.U
           xrem := 0.U
         }.otherwise {
           xlen := xfer_init_pulses - 1.U
+          assert(xsize >= xfer_init_pulses)
           xrem := xsize - xfer_init_pulses
         }
       }
@@ -123,10 +128,12 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
             state := sWriteCmd
             xfer_bytes := xfer_stride_bytes
             when(xsize < xfer_stride_pulses) {
-              xlen := xsize
+              assert(xsize > 0.U)
+              xlen := xsize - 1.U
               xrem := 0.U
             }.otherwise {
               xlen := xfer_stride_pulses - 1.U
+              assert(xsize >= xfer_stride_pulses)
               xrem := xsize - xfer_stride_pulses
             }
           }
@@ -134,13 +141,15 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
         .elsewhen(xrem < xfer_split_pulses) {
           state := sWriteCmd
           xfer_bytes := xfer_split_bytes
-          xlen := xrem
+          assert(xrem > 0.U)
+          xlen := xrem - 1.U
           xrem := 0.U
         }
         .otherwise {
           state := sWriteCmd
           xfer_bytes := xfer_split_bytes
           xlen := xfer_split_pulses - 1.U
+          assert(xrem >= xfer_split_pulses)
           xrem := xrem - xfer_split_pulses
         }
       }
@@ -160,9 +169,9 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
   }
 
   for (i <- 0 until tensorLength) {
-    val inWrData = io.tensor.wr.bits.data(i).asUInt.asTypeOf(wdata_t)
-    when(io.tensor.wr.valid) {
-      tensorFile(i).write(io.tensor.wr.bits.idx, inWrData, no_mask)
+    val inWrData = io.tensor.wr(0).bits.data(i).asUInt.asTypeOf(wdata_t)
+    when(io.tensor.wr(0).valid) {
+      tensorFile(i).write(io.tensor.wr(0).bits.idx, inWrData, no_mask)
     }
   }
 
@@ -186,7 +195,7 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
   }
 
   when(
-    state === sWriteCmd || (set === (tensorLength - 1).U && tag === (numMemBlock - 1).U)) {
+    state === sWriteCmd || (state =/= sReadMem && set === (tensorLength - 1).U && tag === (numMemBlock - 1).U)) {
     set := 0.U
   }.elsewhen(io.vme_wr.data.fire() && tag === (numMemBlock - 1).U) {
     set := set + 1.U

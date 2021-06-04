@@ -23,7 +23,6 @@ import chisel3._
 import chisel3.util._
 import vta.util.config._
 import vta.shell._
-
 /** TensorLoad.
  *
  * Load 1D and 2D tensors from main memory (DRAM) to input/weight
@@ -45,6 +44,10 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
     val vme_rd = new VMEReadMaster
     val tensor = new TensorClient(tensorType)
   })
+
+  require(tp.numMemBlock > 0, s"-F- Unexpected data to tensor bit size ratio. ${tensorType} ${tp.numMemBlock}")
+  require(tp.splitWidth == 1 && tp.splitLength == 1, s"-F- Cannot do split direct access")
+
   val sizeFactor = tp.tensorLength * tp.numMemBlock
   val strideFactor = tp.tensorLength * tp.tensorWidth
 
@@ -82,12 +85,14 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
         when(dec.xpad_0 =/= 0.U) {
           state := sXPad0
         }.otherwise {
+          assert(tag === (tp.numMemBlock - 1).U, "-F- Should not happen mid tensor row read")
           state := sReadCmd
         }
       }
     }
     is(sXPad0) {
       when(xPadCtrl0.io.done) {
+        assert(tag === (tp.numMemBlock - 1).U, "-F- Should not happen mid tensor row read")
         state := sReadCmd
       }
     }
@@ -112,6 +117,7 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
           }.elsewhen(dec.xpad_0 =/= 0.U) {
             state := sXPad0
           }.otherwise {
+            assert(tag === (tp.numMemBlock - 1).U, "-F- Should not happen mid tensor row read")
             state := sReadCmd
           }
         }.elsewhen(dataCtrl.io.split) {
@@ -131,6 +137,7 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
           when(dec.xpad_0 =/= 0.U) {
             state := sXPad0
           }.otherwise {
+            assert(tag === (tp.numMemBlock - 1).U, "-F- Should not happen mid tensor row read")
             state := sReadCmd
           }
         }
@@ -191,13 +198,16 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
     state === sXPad1 |
     state === sYPad1
 
-  when(state === sIdle || state === sReadCmd || tag === (tp.numMemBlock - 1).U) {
+  when(state === sReadCmd && tag =/= (tp.numMemBlock - 1).U) { // split read inside row of mem blocks
+    tag := tag
+  }.elsewhen(state === sIdle || state === sReadCmd || tag === (tp.numMemBlock - 1).U) {
     tag := 0.U
   }.elsewhen(io.vme_rd.data.fire() || isZeroPad) {
     tag := tag + 1.U
   }
 
-  when(state === sIdle || dataCtrlDone || (set === (tp.tensorLength - 1).U && tag === (tp.numMemBlock - 1).U)) {
+  when(state === sIdle || (dataCtrlDone && ~isZeroPad) ||
+    (set === (tp.tensorLength - 1).U && tag === (tp.numMemBlock - 1).U)) {
     set := 0.U
   }.elsewhen((io.vme_rd.data.fire() || isZeroPad) && tag === (tp.numMemBlock - 1).U) {
     set := set + 1.U
@@ -221,6 +231,7 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
   val tensorFile = Seq.fill(tp.tensorLength) {
     SyncReadMem(tp.memDepth, Vec(tp.numMemBlock, UInt(tp.memBlockBits.W)))
   }
+
   val wmask = Seq.fill(tp.tensorLength) { Wire(Vec(tp.numMemBlock, Bool())) }
   val wdata = Seq.fill(tp.tensorLength) {
     Wire(Vec(tp.numMemBlock, UInt(tp.memBlockBits.W)))
@@ -235,12 +246,12 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
       wmask(i)(j) := tag === j.U
       wdata(i)(j) := Mux(isZeroPad, 0.U, io.vme_rd.data.bits)
     }
-    val tdata = io.tensor.wr.bits.data(i).asUInt.asTypeOf(wdata(i))
+    val tdata = io.tensor.wr(0).bits.data(i).asUInt.asTypeOf(wdata(i))
     val muxWen =
       Mux(state === sIdle,
-        io.tensor.wr.valid,
+        io.tensor.wr(0).valid,
         (io.vme_rd.data.fire() | isZeroPad) & set === i.U)
-    val muxWaddr = Mux(state === sIdle, io.tensor.wr.bits.idx, waddr_cur)
+    val muxWaddr = Mux(state === sIdle, io.tensor.wr(0).bits.idx, waddr_cur)
     val muxWdata = Mux(state === sIdle, tdata, wdata(i))
     val muxWmask = Mux(state === sIdle, no_mask, wmask(i))
     when(muxWen) {
@@ -249,14 +260,14 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
   }
 
   // read-from-sram
-  val rvalid = RegNext(io.tensor.rd.idx.valid)
-  io.tensor.rd.data.valid := rvalid
+  val rvalid = RegNext(io.tensor.rd(0).idx.valid)
+  io.tensor.rd(0).data.valid := rvalid
 
   val rdata =
-    tensorFile.map(_.read(io.tensor.rd.idx.bits, io.tensor.rd.idx.valid))
+    tensorFile.map(_.read(io.tensor.rd(0).idx.bits, io.tensor.rd(0).idx.valid))
   rdata.zipWithIndex.foreach {
     case (r, i) =>
-      io.tensor.rd.data.bits(i) := r.asUInt.asTypeOf(io.tensor.rd.data.bits(i))
+      io.tensor.rd(0).data.bits(i) := r.asUInt.asTypeOf(io.tensor.rd(0).data.bits(i))
   }
 
   // done
@@ -291,11 +302,42 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
           dataCtrl.io.addr,
           dataCtrl.io.len)
       }
+      when(state === sYPad0) {
+        printf("[TensorLoad] [wgt] sYPad0\n")
+      }
+      when(state === sYPad1) {
+        printf("[TensorLoad] [wgt] sYPad1\n")
+      }
+      when(state === sXPad0) {
+        printf("[TensorLoad] [wgt] sXPad0\n")
+      }
+      when(state === sXPad1) {
+        printf("[TensorLoad] [wgt] sXPad1\n")
+      }
     } else if (tensorType == "acc") {
       when(io.vme_rd.cmd.fire()) {
         printf("[TensorLoad] [acc] cmd addr:%x len:%x\n",
           dataCtrl.io.addr,
           dataCtrl.io.len)
+        printf("[TensorLoad] [acc info] dec.xsize: %d, dec.ysize: %d, dec.xstride: %d\n",
+          dec.xsize, dec.ysize, dec.xstride)
+        printf("[TensorLoad] [acc i2fo] dec.xpad_1: %d dec.xpad_0: %d dec.ypad_1: %d dec.ypad_0: %d\n",
+          dec.xpad_1, dec.xpad_0, dec.ypad_1, dec.ypad_0)
+
+        printf("tp.tensorLength: %d, tp.numMemBlock: %d, tp.tensorLength: %d, tp.tensorWidth: %d\n",
+          tp.tensorLength.U, tp.numMemBlock.U, tp.tensorLength.U, tp.tensorWidth.U)
+      }
+      when(state === sYPad0) {
+        printf("[TensorLoad] [acc] sYPad0\n")
+      }
+      when(state === sYPad1) {
+        printf("[TensorLoad] [acc] sYPad1\n")
+      }
+      when(state === sXPad0) {
+        printf("[TensorLoad] [acc] sXPad0\n")
+      }
+      when(state === sXPad1) {
+        printf("[TensorLoad] [acc] sXPad1\n")
       }
     }
   }
