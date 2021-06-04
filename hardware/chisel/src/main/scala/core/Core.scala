@@ -25,20 +25,21 @@ import vta.shell._
 
 /** Core parameters */
 case class CoreParams(
-    batch: Int = 1,
-    blockOut: Int = 16,
-    blockIn: Int = 16,
-    inpBits: Int = 8,
-    wgtBits: Int = 8,
-    uopBits: Int = 32,
-    accBits: Int = 32,
-    outBits: Int = 8,
-    uopMemDepth: Int = 512,
-    inpMemDepth: Int = 512,
-    wgtMemDepth: Int = 512,
-    accMemDepth: Int = 512,
-    outMemDepth: Int = 512,
-    instQueueEntries: Int = 32
+    batch: Int,
+    blockOut: Int,
+    blockOutFactor: Int,
+    blockIn: Int,
+    inpBits: Int,
+    wgtBits: Int,
+    uopBits: Int,
+    accBits: Int,
+    outBits: Int,
+    uopMemDepth: Int,
+    inpMemDepth: Int,
+    wgtMemDepth: Int,
+    accMemDepth: Int,
+    outMemDepth: Int,
+    instQueueEntries: Int
 ) {
   require(uopBits % 8 == 0,
     s"\n\n[VTA] [CoreParams] uopBits must be byte aligned\n\n")
