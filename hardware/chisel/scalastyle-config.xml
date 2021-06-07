@@ -77,7 +77,7 @@
  <check level="error" class="org.scalastyle.scalariform.NoFinalizeChecker" enabled="true"></check>
  <check level="error" class="org.scalastyle.scalariform.CovariantEqualsChecker" enabled="true"></check>
  <check level="error" class="org.scalastyle.scalariform.StructuralTypeChecker" enabled="true"></check>
- <check level="error" class="org.scalastyle.file.RegexChecker" enabled="true">
+ <check level="error" class="org.scalastyle.file.RegexChecker" enabled="false">
   <parameters>
    <parameter name="regex"><![CDATA[println]]></parameter>
   </parameters>
@@ -87,7 +87,7 @@
    <parameter name="maxTypes"><![CDATA[30]]></parameter>
   </parameters>
  </check>
- <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="true">
+ <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="false">
   <parameters>
    <parameter name="maximum"><![CDATA[10]]></parameter>
   </parameters>
@@ -100,7 +100,7 @@
    <parameter name="doubleLineAllowed"><![CDATA[false]]></parameter>
   </parameters>
  </check>
- <check level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="true">
+ <check level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="false">
   <parameters>
    <parameter name="maxLength"><![CDATA[50]]></parameter>
   </parameters>
