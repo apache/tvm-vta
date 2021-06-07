@@ -37,13 +37,13 @@ class TestMatrixVectorMultiplication(c: MatrixVectorMultiplication) extends Peek
     val size = inp.length
     val res = Array.fill(size) {0}
     for (i <- 0 until size) {
-        var dot = 0
-        for (j <- 0 until size) {
-          dot += wgt(i)(j) * inp(j)
-        }
-        res(i) = dot * pow(2, shift).toInt
+      var dot = 0
+      for (j <- 0 until size) {
+        dot += wgt(i)(j) * inp(j)
+      }
+      res(i) = dot * pow(2, shift).toInt
     }
-    return res
+    res
   }
 
   val cycles = 5
@@ -54,9 +54,9 @@ class TestMatrixVectorMultiplication(c: MatrixVectorMultiplication) extends Peek
     val in_a = inpGen.any
     val in_b = Array.fill(c.size) { wgtGen.any }
     val res = mvmRef(in_a, in_b, 0)
-    val inpMask = helper.getMask(c.inpBits)
-    val wgtMask = helper.getMask(c.wgtBits)
-    val accMask = helper.getMask(c.accBits)
+    val inpMask = Helper.getMask(c.inpBits)
+    val wgtMask = Helper.getMask(c.wgtBits)
+    val accMask = Helper.getMask(c.accBits)
 
     for (i <- 0 until c.size) {
       poke(c.io.inp.data.bits(0)(i), in_a(i) & inpMask)
@@ -84,7 +84,7 @@ class TestMatrixVectorMultiplication(c: MatrixVectorMultiplication) extends Peek
     }
     if (peek(c.io.acc_o.data.valid) == BigInt(1)) {
       for (i <- 0 until c.size) {
-          expect(c.io.acc_o.data.bits(0)(i), res(i) & accMask)
+        expect(c.io.acc_o.data.bits(0)(i), res(i) & accMask)
       }
     }
   }

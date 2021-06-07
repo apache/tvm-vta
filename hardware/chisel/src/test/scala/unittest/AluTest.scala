@@ -34,7 +34,7 @@ class TestAluVector(c: AluVector) extends PeekPokeTester(c) {
    */
   def aluRef(opcode: Int, a: Array[Int], b: Array[Int], width: Int) : Array[Int] = {
     val size = a.length
-    val mask = helper.getMask(log2Ceil(width))
+    val mask = Helper.getMask(log2Ceil(width))
     val res = Array.fill(size) {0}
 
     if (opcode == 1) {
@@ -61,18 +61,18 @@ class TestAluVector(c: AluVector) extends PeekPokeTester(c) {
         res(i) = if (a(i) < b(i)) a(i) else b(i)
       }
     }
-    return res
+    res
   }
 
   val num_ops = ALU_OP_NUM
   for (i <- 0 until num_ops) {
     // generate data based on bits
-    val bits = c.aluBits
+    val bits = c.io.acc_a.tensorElemBits
     val dataGen = new RandomArray(c.blockOut, bits)
     val op = i
     val in_a = dataGen.any
     val in_b = if (op != 4) dataGen.any else dataGen.negative
-    val mask = helper.getMask(bits)
+    val mask = Helper.getMask(bits)
     val res = aluRef(op, in_a, in_b, bits)
 
     for (i <- 0 until c.blockOut) {
@@ -97,7 +97,7 @@ class TestAluVector(c: AluVector) extends PeekPokeTester(c) {
     }
     if (peek(c.io.acc_y.data.valid) == BigInt(1)) {
       for (i <- 0 until c.blockOut) {
-          expect(c.io.acc_y.data.bits(0)(i), res(i) & mask)
+        expect(c.io.acc_y.data.bits(0)(i), res(i) & mask)
       }
     }
   }
