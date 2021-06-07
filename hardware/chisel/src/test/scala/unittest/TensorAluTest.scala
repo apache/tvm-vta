@@ -81,9 +81,11 @@ class TensorAluIndexGeneratorTester(c: TensorAluIndexGenerator, alu_use_imm : In
   }
 
   val mocks = new Mocks
-  for { cnt_o <- 0 until lp_0
-        cnt_i <- 0 until lp_1
-        uop_idx <- uop_begin until uop_end} {
+  for {
+    cnt_o <- 0 until lp_0
+    cnt_i <- 0 until lp_1
+    uop_idx <- uop_begin until uop_end
+  } {
     mocks.uop_indices.enqueue(uop_idx)
     mocks.dst_indices.enqueue(dst_0*cnt_o + dst_1*cnt_i)
     if (alu_use_imm == 0) {
@@ -97,7 +99,7 @@ class TensorAluIndexGeneratorTester(c: TensorAluIndexGenerator, alu_use_imm : In
 
   val end = (uop_end-uop_begin)*lp_0*lp_1
   var count = 0
-  while(peek(c.io.last) == 0 && count < 10*end + 100) { 
+  while(peek(c.io.last) == 0 && count < 10*end + 100) {
     mocks.logical_step()
     count += 1
   }
@@ -105,10 +107,11 @@ class TensorAluIndexGeneratorTester(c: TensorAluIndexGenerator, alu_use_imm : In
   step(1)
 }
 
-class TensorAluIndexGenerator_0_Test extends GenericTest("TensorAluIndexGenerator_0", (p:Parameters) => new TensorAluIndexGenerator()(p), (c:TensorAluIndexGenerator) => new TensorAluIndexGeneratorTester(c, 0))
+class TensorAluIndexGenerator_0_Test extends GenericTest("TensorAluIndexGenerator_0", (p:Parameters) =>
+  new TensorAluIndexGenerator()(p), (c:TensorAluIndexGenerator) => new TensorAluIndexGeneratorTester(c, 0))
 
-class TensorAluIndexGenerator_1_Test extends GenericTest("TensorAluIndexGenerator_1", (p:Parameters) => new TensorAluIndexGenerator()(p), (c:TensorAluIndexGenerator) => new TensorAluIndexGeneratorTester(c, 1))
-
+class TensorAluIndexGenerator_1_Test extends GenericTest("TensorAluIndexGenerator_1", (p:Parameters) =>
+  new TensorAluIndexGenerator()(p), (c:TensorAluIndexGenerator) => new TensorAluIndexGeneratorTester(c, 1))
 
 class TensorAluPipelinedTester(c: TensorAlu) extends PeekPokeTester(c) {
   poke(c.io.start, 0)
@@ -149,10 +152,10 @@ class TensorAluPipelinedTester(c: TensorAlu) extends PeekPokeTester(c) {
   poke(c.io.uop.data.bits.u0, u0)
   poke(c.io.uop.data.bits.u1, u1)
   poke(c.io.uop.data.bits.u2, u2)
-  
+
   require(c.io.acc.splitWidth == 1, "-F- Test doesnt support acc data access split")
   require(c.io.acc.splitLength == 1, "-F- Test doesnt support acc data access split")
-  
+
   val acc = IndexedSeq.tabulate(c.io.acc.rd(0).data.bits(0).size){ i => BigInt(i) }
   for { lhs <- c.io.acc.rd(0).data.bits} {
     poke(lhs, acc.reverse)
@@ -218,9 +221,11 @@ class TensorAluPipelinedTester(c: TensorAlu) extends PeekPokeTester(c) {
   }
 
   val mocks = new Mocks
-  for { cnt_o <- 0 until lp_0
-        cnt_i <- 0 until lp_1
-        uop_idx <- uop_begin until uop_end} {
+  for {
+    cnt_o <- 0 until lp_0
+    cnt_i <- 0 until lp_1
+    uop_idx <- uop_begin until uop_end
+  } {
     mocks.uop_indices.enqueue(uop_idx)
     mocks.acc_indices.enqueue(src_offset + src_0*cnt_o + src_1*cnt_i)
     mocks.accout_indices.enqueue(dst_offset + dst_0*cnt_o + dst_1*cnt_i)
@@ -243,4 +248,5 @@ class TensorAluPipelinedTester(c: TensorAlu) extends PeekPokeTester(c) {
   mocks.test_if_done()
 }
 
-class TensorAluPipelinedTest extends GenericTest("TensorAluPipelined", (p:Parameters) => new TensorAlu()(p), (c:TensorAlu) => new TensorAluPipelinedTester(c))
+class TensorAluPipelinedTest extends GenericTest("TensorAluPipelined", (p:Parameters) =>
+  new TensorAlu()(p), (c:TensorAlu) => new TensorAluPipelinedTester(c))

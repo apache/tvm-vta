@@ -26,7 +26,7 @@ import unittest.util._
 import vta.core._
 import vta.util.config._
 
-object alu_ref {
+object Alu_ref {
   /* alu_ref
    *
    * This is a software function used as a reference for the hardware
@@ -78,7 +78,7 @@ class AluVectorTester(c: AluVector, seed: Int = 47) extends PeekPokeTester(c) {
     val in_a = dataGen.any
     val in_b = if (op != 4) dataGen.any else dataGen.negative
     val mask = Helper.getMask(bits)
-    val res = alu_ref.alu(op, in_a, in_b, bits)
+    val res = Alu_ref.alu(op, in_a, in_b, bits)
 
     for (i <- 0 until c.blockOut) {
       poke(c.io.acc_a.data.bits(0)(i), in_a(i) & mask)
@@ -106,4 +106,5 @@ class AluVectorTester(c: AluVector, seed: Int = 47) extends PeekPokeTester(c) {
   }
 }
 
-class AluTest extends GenericTest("AluTest", (p:Parameters) => new AluVector()(p), (c:AluVector) => new AluVectorTester(c, 48))
+class AluTest extends GenericTest("AluTest", (p:Parameters) =>
+  new AluVector()(p), (c:AluVector) => new AluVectorTester(c, 48))

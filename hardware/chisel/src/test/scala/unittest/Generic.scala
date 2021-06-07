@@ -27,7 +27,8 @@ import vta.{DefaultPynqConfig}
 
 import org.scalatest.{Matchers, FlatSpec}
 
-class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters](tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
+class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters]
+  (tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
 
   implicit val p: Parameters = new DefaultPynqConfig
 
