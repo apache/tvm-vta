@@ -27,19 +27,19 @@ import vta.{DefaultPynqConfig}
 
 import org.scalatest.{Matchers, FlatSpec}
 
-class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters]( tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
+class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters](tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
 
   implicit val p: Parameters = new DefaultPynqConfig
 
   val arguments = Array(
     "--backend-name", "treadle",
-    //"--backend-name", "vcs",
-    //"--is-verbose",
+    // "--backend-name", "vcs",
+    // "--is-verbose",
     "--test-seed", "0"
     )
 
   behavior of tag
   it should "not have expect violations" in {
-    chisel3.iotesters.Driver.execute( arguments, ()=> dutFactory(p))(testerFactory) should be (true)
+    chisel3.iotesters.Driver.execute(arguments, ()=> dutFactory(p))(testerFactory) should be (true)
   }
 }

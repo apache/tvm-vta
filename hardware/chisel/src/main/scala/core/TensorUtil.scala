@@ -81,7 +81,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
 
   // acc/wgt parts are grouped to form
   // a physically compact compute entity
-  //
+
   val (splitLength, splitWidth) =
     if (tensorType == "inp") {
       (1, 1)
@@ -92,7 +92,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
       // GEMM/ALU operation group is based on wgt tiling of blockout
       // means acc out of a group if batch > 1 is not
       // continous data and may be placed into different memory
-      //modules. But the whole idea of a group to localize
+      // modules. But the whole idea of a group to localize
       // piece of wgt to piece of acc data transformation
       //
       (1, p(CoreKey).blockOutFactor)
@@ -107,8 +107,8 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
     }
   require (splitLength == 1 || splitWidth == 1, "-F- Can split only one dimension.")
 
-  //provide index of a group closes to IO
-  // exepect 2 columns of groups io on top and indexing from bottom
+  // provide index of a group closes to IO
+  // expect 2 columns of groups io on top and indexing from bottom
   val closestIOGrpIdx =
     if (tensorType == "inp") {
       splitLength - 1
@@ -154,7 +154,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
     val outGroupWdthIdx = outGroupOffset % grpWdt
     (outGroupIdx, outGroupLenIdx, outGroupWdthIdx)
   }
-  //map data index form a continous to a window index
+  // map data index form a continous to a window index
   def reindexDataToGroup (grpIdx : Int, lenIdx: Int, wdtIdx: Int) = {
     val outGrpLen = tensorLength / splitLength // data rows in a group
     val outGrpWdt = tensorWidth / splitWidth // data colums in a group

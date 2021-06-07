@@ -68,7 +68,7 @@ object alu_ref {
 }
 
 class AluVectorTester(c: AluVector, seed: Int = 47) extends PeekPokeTester(c) {
-  val r = new Random( seed)
+  val r = new Random(seed)
 
   val num_ops = ALU_OP_NUM
   for (op <- 0 until num_ops) {
@@ -106,4 +106,4 @@ class AluVectorTester(c: AluVector, seed: Int = 47) extends PeekPokeTester(c) {
   }
 }
 
-class AluTest extends GenericTest( "AluTest", (p:Parameters) => new AluVector()(p), (c:AluVector) => new AluVectorTester(c, 48))
+class AluTest extends GenericTest("AluTest", (p:Parameters) => new AluVector()(p), (c:AluVector) => new AluVectorTester(c, 48))

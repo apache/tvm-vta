@@ -92,12 +92,13 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
       when (io.start) {
         state := sWriteCmd
         when (xsize < xfer_init_pulses) {
-          assert(xsize > 0.U)
+          assert(xsize > 0.U, "Idle => WriteCmd, init, without xrem: must have positive xsize")
           xlen := xsize - 1.U
           xrem := 0.U
         }.otherwise {
           xlen := xfer_init_pulses - 1.U
-          assert(xsize >= xfer_init_pulses)
+          assert(xsize >= xfer_init_pulses,
+            "Idle => WriteCmd, init, with xrem: must have xsize no smaller than xfer_init_pulses")
           xrem := xsize - xfer_init_pulses
         }
       }
@@ -128,12 +129,13 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
             state := sWriteCmd
             xfer_bytes := xfer_stride_bytes
             when(xsize < xfer_stride_pulses) {
-              assert(xsize > 0.U)
+              assert(xsize > 0.U, "WriteAck => WriteCmd, stride, without xrem: must have positive xsize")
               xlen := xsize - 1.U
               xrem := 0.U
             }.otherwise {
               xlen := xfer_stride_pulses - 1.U
-              assert(xsize >= xfer_stride_pulses)
+              assert(xsize >= xfer_stride_pulses,
+                "WriteAck => WriteCmd, stride, with xrem: must have xsize no smaller than xfer_stride_pulses")
               xrem := xsize - xfer_stride_pulses
             }
           }
@@ -141,7 +143,7 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
         .elsewhen(xrem < xfer_split_pulses) {
           state := sWriteCmd
           xfer_bytes := xfer_split_bytes
-          assert(xrem > 0.U)
+          assert(xrem > 0.U, "WriteAck => WriteCmd, split, without xrem: must have positive xrem")
           xlen := xrem - 1.U
           xrem := 0.U
         }
@@ -149,7 +151,8 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
           state := sWriteCmd
           xfer_bytes := xfer_split_bytes
           xlen := xfer_split_pulses - 1.U
-          assert(xrem >= xfer_split_pulses)
+          assert(xrem >= xfer_split_pulses,
+            "WriteAck => WriteCmd, split, with xrem: must have xrem no smaller than xfer_split_pulses")
           xrem := xrem - xfer_split_pulses
         }
       }

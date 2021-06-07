@@ -227,12 +227,12 @@ class TensorGemm(debug: Boolean = false)(implicit p: Parameters) extends TensorG
   // Latency is defined as two in the following, because there is one cycle in the MAC module,
   // and another cycle in the pipelined adders as the first layer of the accumulator
   val wrpipe = Module(new Pipe(chiselTypeOf(dec.uop_end), latency = 2))
-  val cond = cnt_o === dec.lp_0 - 1.U &
+  val cond_last = cnt_o === dec.lp_0 - 1.U &
     cnt_i === dec.lp_1 - 1.U &
     uop_idx === uop_end - 1.U
 
   val done = inflight === 0.U &
-    ((state === sExe) & cond | state === sWait)
+    ((state === sExe) & cond_last | state === sWait)
 
   switch(state) {
     is(sIdle) {
@@ -250,7 +250,7 @@ class TensorGemm(debug: Boolean = false)(implicit p: Parameters) extends TensorG
       state := sExe
     }
     is(sExe) {
-      when(cond) {
+      when(cond_last) {
         when(inflight =/= 0.U) {
           state := sWait
         }.otherwise {
@@ -272,10 +272,10 @@ class TensorGemm(debug: Boolean = false)(implicit p: Parameters) extends TensorG
   }.elsewhen(!dec.reset) {
     when((state === sReadTensor) && mvc.io.acc_o.data.valid) { // issue & commit
     }.elsewhen(state === sReadTensor) { // issue a tensor
-      assert( inflight =/= ((1<<inflightBits)-1).U)
+      assert(inflight =/= ((1<<inflightBits)-1).U)
       inflight := inflight + 1.U
     }.elsewhen(mvc.io.acc_o.data.valid) { // commit a tensor
-      assert( inflight =/= 0.U)
+      assert(inflight =/= 0.U)
       inflight := inflight - 1.U
     }
   }
@@ -368,8 +368,8 @@ class TensorGemm(debug: Boolean = false)(implicit p: Parameters) extends TensorG
 
   io.done := done
 
-  if ( debug) {
-    printf( "[TensorGemm] [state]:%d [inflight]:%d\n", state, inflight)
+  if (debug) {
+    printf("[TensorGemm] [state]:%d [inflight]:%d\n", state, inflight)
 
     when(state === sReadUop && ~dec.reset) {
       printf("[TensorGemm] [uop] idx:%x\n", uop_idx)

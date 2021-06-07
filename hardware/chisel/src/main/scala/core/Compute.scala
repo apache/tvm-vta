@@ -60,7 +60,7 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
   val tensorGemm = Module(new TensorGemm)
   val tensorAlu = Module(new TensorAlu)
 
-  //try to use the acc closest to top IO
+  // try to use the acc closest to top IO
   val topAccGrpIdx = tensorGemm.io.acc.closestIOGrpIdx
 
   val inst_q = Module(new Queue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
@@ -123,7 +123,7 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
   loadUop.io.baddr := io.uop_baddr
   io.vme_rd(0) <> loadUop.io.vme_rd
   loadUop.io.uop.idx <> Mux(dec.io.isGemm, tensorGemm.io.uop.idx, tensorAlu.io.uop.idx)
-  assert( !tensorGemm.io.uop.idx.valid || !tensorAlu.io.uop.idx.valid)
+  assert(!tensorGemm.io.uop.idx.valid || !tensorAlu.io.uop.idx.valid)
 
   // acc
   tensorAcc.io.start := state === sIdle & start & dec.io.isLoadAcc
@@ -194,10 +194,10 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
     io.out.rd(idx).idx <> Mux(dec.io.isGemm,
       tensorGemm.io.out.rd(idx).idx,
       tensorAlu.io.out.rd(idx).idx)
-    assert( !tensorGemm.io.out.rd(idx).idx.valid || !tensorAlu.io.out.rd(idx).idx.valid)
-    assert( !tensorGemm.io.out.rd(idx).data.valid || !tensorAlu.io.out.rd(idx).data.valid)
+    assert(!tensorGemm.io.out.rd(idx).idx.valid || !tensorAlu.io.out.rd(idx).idx.valid)
+    assert(!tensorGemm.io.out.rd(idx).data.valid || !tensorAlu.io.out.rd(idx).data.valid)
 
-    assert( !tensorGemm.io.out.wr(idx).valid || !tensorAlu.io.out.wr(idx).valid)
+    assert(!tensorGemm.io.out.wr(idx).valid || !tensorAlu.io.out.wr(idx).valid)
   }
   require (tensorGemm.io.out.splitWidth == 1)
   require (tensorAlu.io.out.splitWidth == 1)
@@ -205,7 +205,7 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
     RegNext(dec.io.isGemm, init = false.B), tensorGemm.io.out.wr(0).valid, tensorAlu.io.out.wr(0).valid)
   io.out.wr(0).bits.idx := Mux(
     RegNext(dec.io.isGemm, init = false.B), tensorGemm.io.out.wr(0).bits.idx, tensorAlu.io.out.wr(0).bits.idx)
-  //put mux/Reg into every gemm group to build pipe (for Mux select) tree over distance
+  // put mux/Reg into every gemm group to build pipe (for Mux select) tree over distance
   val chunkWidth = io.out.wr(0).bits.data.getWidth / tensorGemm.io.acc.splitWidth
   val outDataBits = Wire(Vec(tensorGemm.io.acc.splitWidth, UInt(chunkWidth.W)))
   io.out.wr(0).bits.data := outDataBits.asTypeOf(io.out.wr(0).bits.data)
