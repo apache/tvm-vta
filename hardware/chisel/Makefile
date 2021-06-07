@@ -165,6 +165,7 @@ default: lint lib
 
 lint:
 	sbt scalastyle
+	sbt test:scalastyle
 
 lib: $(lib_path)
 
