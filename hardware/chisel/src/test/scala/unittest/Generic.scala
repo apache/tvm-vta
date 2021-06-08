@@ -17,33 +17,30 @@
  * under the License.
  */
 
-package vta.core
+package unittest
 
+import chisel3._
+import chisel3.util._
 import vta.util.config._
+import chisel3.iotesters._
+import vta.{DefaultPynqConfig}
 
-/** CoreConfig.
- *
- * This is one supported configuration for VTA. This file will
- * be eventually filled out with class configurations that can be
- * mixed/matched with Shell configurations for different backends.
- */
-class CoreConfig extends Config((site, here, up) => {
-  case CoreKey =>
-    CoreParams(
-      batch = 1,
-      blockOut = 16,
-      blockOutFactor = 1,
-      blockIn = 16,
-      inpBits = 8,
-      wgtBits = 8,
-      uopBits = 32,
-      accBits = 32,
-      outBits = 8,
-      uopMemDepth = 2048,
-      inpMemDepth = 2048,
-      wgtMemDepth = 1024,
-      accMemDepth = 2048,
-      outMemDepth = 2048,
-      instQueueEntries = 512
+import org.scalatest.{Matchers, FlatSpec}
+
+class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters]
+  (tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
+
+  implicit val p: Parameters = new DefaultPynqConfig
+
+  val arguments = Array(
+    "--backend-name", "treadle",
+    // "--backend-name", "vcs",
+    // "--is-verbose",
+    "--test-seed", "0"
     )
-})
+
+  behavior of tag
+  it should "not have expect violations" in {
+    chisel3.iotesters.Driver.execute(arguments, ()=> dutFactory(p))(testerFactory) should be (true)
+  }
+}

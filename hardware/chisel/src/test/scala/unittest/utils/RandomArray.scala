@@ -22,9 +22,12 @@ package unittest.util
 import scala.util.Random
 import scala.math.pow
 
-class RandomArray(val len: Int, val bits: Int) {
-  val r = new Random
+class RandomArray(val len: Int, val bits: Int, val r: Random) {
   if (bits < 1) throw new IllegalArgumentException ("bits should be greater than 1")
+
+  def this(len: Int, bits: Int) {
+    this(len, bits, new Random)
+  }
 
   def any : Array[Int] = {
     Array.fill(len) { r.nextInt(pow(2, bits).toInt) - pow(2, bits-1).toInt }

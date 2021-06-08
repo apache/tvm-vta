@@ -35,7 +35,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
     s"\n\n[VTA] [TensorParams] only inp, wgt, acc, and out supported\n\n"
 
   require(tensorType == "inp" || tensorType == "wgt"
-    || tensorType == "acc" || tensorType == "out",
+    || tensorType == "acc" || tensorType == "out" || tensorType == "fetch" || tensorType == "uop",
     errorMsg)
 
   val (tensorLength, tensorWidth, tensorElemBits) =
@@ -45,6 +45,15 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
       (p(CoreKey).blockOut, p(CoreKey).blockIn, p(CoreKey).wgtBits)
     else if (tensorType == "acc")
       (p(CoreKey).batch, p(CoreKey).blockOut, p(CoreKey).accBits)
+    else if (tensorType == "fetch") {
+      // make fetch a 64 bit data to be able to read
+      // 64 bit aligned address. It works for wide cacheline
+      require(p(ShellKey).memParams.dataBits >= INST_BITS,
+        "-F- Cannot make fetch tensor narrower than data pulse. TODO: narrow fetch with tensors")
+      (1, 1, 64)
+    }
+    else if (tensorType == "uop")
+      (1, 1, p(CoreKey).uopBits)
     else
       (p(CoreKey).batch, p(CoreKey).blockOut, p(CoreKey).outBits)
 
@@ -58,10 +67,118 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
       p(CoreKey).wgtMemDepth
     else if (tensorType == "acc")
       p(CoreKey).accMemDepth
+    else if (tensorType == "fetch") {
+      require(p(ShellKey).memParams.dataBits >= INST_BITS,
+        "-F- Cannot make fetch tensor narrower than data pulse. TODO: narrow fetch with tensors")
+      // still should be one data line
+      (1 << p(ShellKey).memParams.lenBits)*(INST_BITS / 64)
+    }
+    else if (tensorType == "uop") {
+      p(CoreKey).uopMemDepth
+    }
     else
       p(CoreKey).outMemDepth
 
+  // acc/wgt parts are grouped to form
+  // a physically compact compute entity
+
+  val (splitLength, splitWidth) =
+    if (tensorType == "inp") {
+      (1, 1)
+    } else if (tensorType == "wgt") {
+      (p(CoreKey).blockOutFactor, 1)
+    } else if (tensorType == "acc") {
+      // acc scratchpad is batch rows of blockout columns
+      // GEMM/ALU operation group is based on wgt tiling of blockout
+      // means acc out of a group if batch > 1 is not
+      // continous data and may be placed into different memory
+      // modules. But the whole idea of a group to localize
+      // piece of wgt to piece of acc data transformation
+      //
+      (1, p(CoreKey).blockOutFactor)
+    } else if (tensorType == "fetch") {
+      (1, 1)
+    } else if (tensorType == "uop") {
+      (1, 1)
+    } else if (tensorType == "out") {
+      (1, 1) // narrow store doesnt support split
+    } else {
+      (1, 1)
+    }
+  require (splitLength == 1 || splitWidth == 1, "-F- Can split only one dimension.")
+
+  // provide index of a group closes to IO
+  // expect 2 columns of groups io on top and indexing from bottom
+  val closestIOGrpIdx =
+    if (tensorType == "inp") {
+      splitLength - 1
+    } else if (tensorType == "wgt") {
+      if (splitLength < 2) 0 else splitLength / 2 - 1
+    } else if (tensorType == "acc") {
+      if (splitWidth < 2) 0 else splitWidth / 2 - 1
+    } else if (tensorType == "fetch") {
+      0
+    } else if (tensorType == "uop") {
+      0
+    } else if (tensorType == "out") {
+      0
+    } else {
+      0
+    }
+
   val memAddrBits = log2Ceil(memDepth)
+
+  val tensorSizeBits = tensorLength * tensorWidth * tensorElemBits
+  val tsSizeRatio = tensorSizeBits / memBlockBits
+  val clSizeRatio = memBlockBits / tensorSizeBits
+
+  val lenSplit = tensorLength / splitLength // tensor rows in a group
+  val widthSplit = tensorWidth / splitWidth // tensor colums in a group
+  require(lenSplit > 0 && widthSplit > 0, "-F- wrong split")
+
+  // tensor condsiders groups as a continous data, gemm generates a data window
+  // Map data index from a window index to a continous groups index
+  def reindexDataFromGroup (grpIdx : Int, lenIdx: Int, wdtIdx: Int) = {
+
+    val grpLen = lenSplit // tensor rows in a group
+    val grpWdt = widthSplit // tensor colums in a group
+    val srcGrpRow = grpIdx / splitWidth // group row
+    val srcGrpCol = grpIdx % splitWidth // group column
+    val tnzRow = srcGrpRow * grpLen
+    val tnzCol = srcGrpCol * grpWdt
+    val flatIdx = (tnzRow + lenIdx) * tensorWidth + tnzCol + wdtIdx
+
+    val outGroupIdx = flatIdx / (grpLen * grpWdt)
+    val outGroupOffset = flatIdx % (grpLen * grpWdt)
+    val outGroupLenIdx = outGroupOffset / grpWdt
+    val outGroupWdthIdx = outGroupOffset % grpWdt
+    (outGroupIdx, outGroupLenIdx, outGroupWdthIdx)
+  }
+  // map data index form a continous to a window index
+  def reindexDataToGroup (grpIdx : Int, lenIdx: Int, wdtIdx: Int) = {
+    val outGrpLen = tensorLength / splitLength // data rows in a group
+    val outGrpWdt = tensorWidth / splitWidth // data colums in a group
+
+    val outIdx = grpIdx * outGrpLen * outGrpWdt + lenIdx * outGrpWdt + wdtIdx
+    val outRow = outIdx / tensorWidth
+    val outCol = outIdx % tensorWidth
+
+
+    val outGrpRow = outRow / outGrpLen
+    val outLenIdx = outRow % outGrpLen
+
+    val outGrpCol = outCol / outGrpWdt
+    val outColIdx = outCol % outGrpWdt
+
+    val outGrpIdx = outGrpRow * splitWidth + outGrpCol
+
+    (outGrpIdx, outLenIdx, outColIdx)
+
+  }
+  def paramsStr () = {
+    s" ${tensorType} ${tensorSizeBits*memDepth/8} Byte. length:${tensorLength} width:${tensorWidth}" +
+    s" data bits:${tensorElemBits} mem depth:${memDepth} groups split length:${splitLength}"
+  }
 }
 
 /** TensorMaster.
@@ -73,25 +190,29 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
  */
 class TensorMaster(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
-  val rd = new Bundle {
+  val rd = Vec(splitLength * splitWidth, new Bundle {
     val idx = ValidIO(UInt(memAddrBits.W))
     val data = Flipped(
-      ValidIO(Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))))
-  }
-  val wr = ValidIO(new Bundle {
-    val idx = UInt(memAddrBits.W)
-    val data = Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))
+      ValidIO(Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W)))))
   })
+  val wr = Vec(splitLength * splitWidth, ValidIO(new Bundle {
+    val idx = UInt(memAddrBits.W)
+    val data = Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W)))
+  }))
   def tieoffRead() {
-    rd.idx.valid := false.B
-    rd.idx.bits := 0.U
+    for (idx <- 0 until splitLength * splitWidth) {
+      rd(idx).idx.valid := false.B
+      rd(idx).idx.bits := 0.U
+    }
   }
   def tieoffWrite() {
-    wr.valid := false.B
-    wr.bits.idx := 0.U
-    wr.bits.data.foreach { b =>
-      b.foreach { c =>
-        c := 0.U
+    for (idx <- 0 until splitLength * splitWidth) {
+      wr(idx).valid := false.B
+      wr(idx).bits.idx := 0.U
+      wr(idx).bits.data.foreach { b =>
+        b.foreach { c =>
+          c := 0.U
+        }
       }
     }
   }
@@ -107,20 +228,33 @@ class TensorMaster(tensorType: String = "none")
  */
 class TensorClient(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
-  val rd = new Bundle {
+  val rd = Vec(splitLength * splitWidth, new Bundle {
     val idx = Flipped(ValidIO(UInt(memAddrBits.W)))
     val data = ValidIO(
-      Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W))))
-  }
-  val wr = Flipped(ValidIO(new Bundle {
+      Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W))))
+  })
+  val wr = Vec(splitLength * splitWidth, Flipped(ValidIO(new Bundle {
     val idx = UInt(memAddrBits.W)
-    val data = Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))
-  }))
+    val data = Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W)))
+  })))
   def tieoffRead() {
-    rd.data.valid := false.B
-    rd.data.bits.foreach { b =>
-      b.foreach { c =>
-        c := 0.U
+    for (idx <- 0 until splitLength * splitWidth) {
+      rd(idx).data.valid := false.B
+      rd(idx).data.bits.foreach { b =>
+        b.foreach { c =>
+          c := 0.U
+        }
+      }
+    }
+  }
+  def tieoffWrite() {
+    for (idx <- 0 until splitLength * splitWidth) {
+      wr(idx).valid := false.B
+      wr(idx).bits.idx := 0.U
+      wr(idx).bits.data.foreach { b =>
+        b.foreach { c =>
+          c := 0.U
+        }
       }
     }
   }
@@ -137,7 +271,7 @@ class TensorClient(tensorType: String = "none")
 class TensorMasterData(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
   val data = Flipped(
-    ValidIO(Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W)))))
+    ValidIO(Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W)))))
   override def cloneType =
     new TensorMasterData(tensorType).asInstanceOf[this.type]
 }
@@ -151,7 +285,7 @@ class TensorMasterData(tensorType: String = "none")
 class TensorClientData(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
   val data = ValidIO(
-    Vec(tensorLength, Vec(tensorWidth, UInt(tensorElemBits.W))))
+    Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W))))
   override def cloneType =
     new TensorClientData(tensorType).asInstanceOf[this.type]
 }
