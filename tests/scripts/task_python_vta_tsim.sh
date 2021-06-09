@@ -49,6 +49,7 @@ make -C ${VTA_HW_PATH}/hardware/chisel lint
 
 # Build VTA chisel design and verilator simulator
 echo "Building VTA chisel design..."
+make -C ${VTA_HW_PATH}/hardware/chisel unittest
 make -C ${VTA_HW_PATH}/hardware/chisel cleanall
 make -C ${VTA_HW_PATH}/hardware/chisel USE_THREADS=0 lib
 
