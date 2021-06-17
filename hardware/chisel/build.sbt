@@ -68,5 +68,13 @@ val defaultVersions = Map(
 libraryDependencies ++= Seq("chisel3","chisel-iotesters").map {
   dep: String => "edu.berkeley.cs" %% dep % sys.props.getOrElse(dep + "Version", defaultVersions(dep)) }
 
+libraryDependencies ++= Seq(
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.3",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.10.3"
+)
+
+scalacOptions += "-language:reflectiveCalls"
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
+
 scalacOptions ++= scalacOptionsVersion(scalaVersion.value)
 javacOptions ++= javacOptionsVersion(scalaVersion.value)
