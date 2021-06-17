@@ -583,18 +583,6 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
   }
   io.state := state
 
-  if ( false) {
-    when ( state === sIdle && io.start) {
-      printf( "Inst: reset: %x uop_{begin,end}: %x %x lp_{0,1}: %x %x {acc,inp,wgt}_{0,1}: %x %x %x %x %x %x\n",
-      io.dec.reset,
-      io.dec.uop_begin, io.dec.uop_end,
-      io.dec.lp_0, io.dec.lp_1,
-      io.dec.acc_0, io.dec.acc_1,
-      io.dec.inp_0, io.dec.inp_1,
-      io.dec.wgt_0, io.dec.wgt_1)
-    }
-  }
-
   assert( state =/= sRun  || capture_dec.asUInt === io.dec.asUInt)
   assert( state =/= sWait || capture_dec.asUInt === io.dec.asUInt)
 
