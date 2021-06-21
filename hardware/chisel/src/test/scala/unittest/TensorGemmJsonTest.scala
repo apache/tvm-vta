@@ -271,8 +271,10 @@ class TensorGemmJsonTester(c: TensorGemmPipelinedSplit, fn : String = "/x.json")
   mocks.test_if_done()
 }
 
-class TensorGemmJsonTestx extends GenericTest("TensorGemmJson", (p:Parameters) => new TensorGemmPipelinedSplit()(p),
-  (c:TensorGemmPipelinedSplit) => new TensorGemmJsonTester(c, "/x.json"))
+class TensorGemmJsonTestSingleUopOverflowOffset extends GenericTest("TensorGemmJson", (p:Parameters) =>
+  new TensorGemmPipelinedSplit()(p),
+  (c:TensorGemmPipelinedSplit) => new TensorGemmJsonTester(c, "/gemm_1uop_overflow_offset.json"))
 
-class TensorGemmJsonTesty extends GenericTest("TensorGemmJson", (p:Parameters) => new TensorGemmPipelinedSplit()(p),
-  (c:TensorGemmPipelinedSplit) => new TensorGemmJsonTester(c, "/y.json"))
+class TensorGemmJsonTestDoubleUopOverflowCascaded extends GenericTest("TensorGemmJson", (p:Parameters) =>
+  new TensorGemmPipelinedSplit()(p),
+  (c:TensorGemmPipelinedSplit) => new TensorGemmJsonTester(c, "/gemm_2uop_overflow_cascaded.json"))
