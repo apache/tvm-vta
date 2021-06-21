@@ -236,24 +236,24 @@ class TensorGemmIndexGenerator(implicit p: Parameters) extends Module {
 
   io.last := false.B
 
-  val running = RegInit( false.B)
-  when( !running && io.start) {
+  val running = RegInit(false.B)
+  when(!running && io.start) {
     running := true.B
-  }.elsewhen( io.last) {
+  }.elsewhen(io.last) {
     running := false.B
   }
 
-  val cnt_i = Reg( chiselTypeOf(io.dec.lp_1))
-  val acc_i = Reg( chiselTypeOf(io.acc_i))
-  val inp_i = Reg( chiselTypeOf(io.inp_i))
-  val wgt_i = Reg( chiselTypeOf(io.wgt_i))
+  val cnt_i = Reg(chiselTypeOf(io.dec.lp_1))
+  val acc_i = Reg(chiselTypeOf(io.acc_i))
+  val inp_i = Reg(chiselTypeOf(io.inp_i))
+  val wgt_i = Reg(chiselTypeOf(io.wgt_i))
 
-  val cnt_o = Reg( chiselTypeOf(io.dec.lp_0))
-  val acc_o = Reg( chiselTypeOf(io.acc_i))
-  val inp_o = Reg( chiselTypeOf(io.inp_i))
-  val wgt_o = Reg( chiselTypeOf(io.wgt_i))
+  val cnt_o = Reg(chiselTypeOf(io.dec.lp_0))
+  val acc_o = Reg(chiselTypeOf(io.acc_i))
+  val inp_o = Reg(chiselTypeOf(io.inp_i))
+  val wgt_o = Reg(chiselTypeOf(io.wgt_i))
 
-  val uop_idx = Reg( chiselTypeOf(io.dec.uop_end))
+  val uop_idx = Reg(chiselTypeOf(io.dec.uop_end))
 
   io.valid := running
   io.acc_i := acc_i
@@ -261,7 +261,7 @@ class TensorGemmIndexGenerator(implicit p: Parameters) extends Module {
   io.wgt_i := wgt_i
   io.uop_idx := uop_idx
 
-  when( !running) {
+  when(!running) {
     cnt_i := 0.U; acc_i := 0.U; inp_i := 0.U; wgt_i := 0.U
     cnt_o := 0.U; acc_o := 0.U; inp_o := 0.U; wgt_o := 0.U
     uop_idx := io.dec.uop_begin
@@ -270,13 +270,13 @@ class TensorGemmIndexGenerator(implicit p: Parameters) extends Module {
       uop_idx := uop_idx + 1.U
     }.otherwise {
       uop_idx := io.dec.uop_begin
-      when ( cnt_i =/= io.dec.lp_1 - 1.U) {
+      when (cnt_i =/= io.dec.lp_1 - 1.U) {
         cnt_i := cnt_i + 1.U
         acc_i := acc_i + io.dec.acc_1
         inp_i := inp_i + io.dec.inp_1
         wgt_i := wgt_i + io.dec.wgt_1
       }.otherwise {
-        when ( cnt_o =/= io.dec.lp_0 - 1.U) {
+        when (cnt_o =/= io.dec.lp_0 - 1.U) {
           val acc_tmp = acc_o + io.dec.acc_0
           val inp_tmp = inp_o + io.dec.inp_0
           val wgt_tmp = wgt_o + io.dec.wgt_0
@@ -395,10 +395,10 @@ class TensorGemmOrig(debug: Boolean = false)(implicit p: Parameters) extends Ten
   }.elsewhen(!dec.reset) {
     when((state === sReadTensor) && mvc.io.acc_o.data.valid) { // issue & commit
     }.elsewhen(state === sReadTensor) { // issue a tensor
-      assert( inflight =/= ((1<<inflightBits)-1).U)
+      assert(inflight =/= ((1<<inflightBits)-1).U)
       inflight := inflight + 1.U
     }.elsewhen(mvc.io.acc_o.data.valid) { // commit a tensor
-      assert( inflight =/= 0.U)
+      assert(inflight =/= 0.U)
       inflight := inflight - 1.U
     }
   }
@@ -491,8 +491,8 @@ class TensorGemmOrig(debug: Boolean = false)(implicit p: Parameters) extends Ten
 
   io.done := done
 
-  if ( debug) {
-    printf( "[TensorGemm] [state]:%d [inflight]:%d\n", state, inflight)
+  if (debug) {
+    printf("[TensorGemm] [state]:%d [inflight]:%d\n", state, inflight)
 
     when(state === sReadUop && ~dec.reset) {
       printf("[TensorGemm] [uop] idx:%x\n", uop_idx)
@@ -567,24 +567,24 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
   val state = RegInit(sIdle)
   val inflight = RegInit(0.U(inflightBits.W))
 
-  val capture_dec = Reg( chiselTypeOf( io.dec))
+  val capture_dec = Reg(chiselTypeOf(io.dec))
 
   io.done := false.B
-  when( state === sIdle && io.start) {
+  when(state === sIdle && io.start) {
     state := sRun
     capture_dec := io.dec
     // if (io.dec.empty_0 != None) assert(io.dec.empty_0.get === 0.U)
     // if (io.dec.empty_1 != None) assert(io.dec.empty_1.get === 0.U)
-  }.elsewhen( state === sRun && m.io.last) {
+  }.elsewhen(state === sRun && m.io.last) {
     state := sWait
-  }.elsewhen( state === sWait && inflight === 0.U) {
+  }.elsewhen(state === sWait && inflight === 0.U) {
     state := sIdle
     io.done := true.B
   }
   io.state := state
 
-  assert( state =/= sRun  || capture_dec.asUInt === io.dec.asUInt)
-  assert( state =/= sWait || capture_dec.asUInt === io.dec.asUInt)
+  assert(state =/= sRun  || capture_dec.asUInt === io.dec.asUInt)
+  assert(state =/= sWait || capture_dec.asUInt === io.dec.asUInt)
 
   m.io.start := io.start
 
@@ -596,10 +596,10 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
 
   assert(delayedUopData.valid === delayed_valid)
 
-  val uop_valid = ShiftRegister( delayed_valid, inpReadIdxLatency, resetData = false.B, en = true.B)
-  val uop_acc = ShiftRegister( delayedUopData.bits.u0 + delayed_acc_i, inpReadIdxLatency)
+  val uop_valid = ShiftRegister(delayed_valid, inpReadIdxLatency, resetData = false.B, en = true.B)
+  val uop_acc = ShiftRegister(delayedUopData.bits.u0 + delayed_acc_i, inpReadIdxLatency)
   val uop_inp =  delayedUopData.bits.u1 + delayed_inp_i // it is piped in inp tensor read
-  val uop_wgt = ShiftRegister( delayedUopData.bits.u2 + delayed_wgt_i, inpReadIdxLatency)
+  val uop_wgt = ShiftRegister(delayedUopData.bits.u2 + delayed_wgt_i, inpReadIdxLatency)
 
   val reset_pipe = Module(
     new Pipe(
@@ -609,14 +609,14 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
   reset_pipe.io.enq.bits := capture_dec.reset
 
   val acc_idx_pipe = Module(
-    new Pipe( chiselTypeOf(io.acc.rd(0).idx.bits), latency= 1 /* borrow 1 stage to split*/ + scratchpadReadLatency))
+    new Pipe(chiselTypeOf(io.acc.rd(0).idx.bits), latency= 1 /* borrow 1 stage to split*/ + scratchpadReadLatency))
   acc_idx_pipe.io.enq.valid := uop_valid
   acc_idx_pipe.io.enq.bits := uop_acc
 
   require(io.inp.splitWidth == 1 && io.inp.splitLength == 1, "-F- Input split read not supported")
   io.inp.rd(0).idx.valid := delayed_valid
   io.inp.rd(0).idx.bits := uop_inp
-  val delayed_uop_valid = RegNext( uop_valid, init=false.B) // memdelay
+  val delayed_uop_valid = RegNext(uop_valid, init=false.B) // memdelay
   // asset fires on emulated tensorRead Direct GEMM test TODO: fix memoryManager sram read
   // it works only for VTA_CORE_GEMM_INP_IDX_PIPE 0
   assert(io.inp.rd(0).data.valid === delayed_uop_valid)
@@ -635,15 +635,15 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
 
   // create a pipe of 3+ delay with split by goup last stage
   // and a separate last stage for out and inflight
-  val wrpipe0 = Module( new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 2 + scratchpadReadLatency))
+  val wrpipe0 = Module(new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 2 + scratchpadReadLatency))
   wrpipe0.io.enq.valid := uop_valid
   wrpipe0.io.enq.bits := uop_acc
   // write pipe not split
-  val wrpipeNs = Module( new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 1))
+  val wrpipeNs = Module(new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 1))
   wrpipeNs.io.enq <> wrpipe0.io.deq
   // split the last pipe stage per group
   val wrpipe =  for (idx <- 0 until numMVMs) yield {
-    val pipe = Module( new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 1))
+    val pipe = Module(new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency= 1))
     pipe.io.enq <> wrpipe0.io.deq
     pipe
   }
@@ -652,16 +652,16 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
     assert(io.acc.rd(idx).data.valid === wrpipe(idx).io.deq.valid)
   }
 
-  when( m.io.valid && wrpipeNs.io.deq.valid) {
-  }.elsewhen( m.io.valid) {
-    assert( inflight =/= ((1<<inflightBits)-1).U)
+  when(m.io.valid && wrpipeNs.io.deq.valid) {
+  }.elsewhen(m.io.valid) {
+    assert(inflight =/= ((1<<inflightBits)-1).U)
     inflight := inflight + 1.U
-  }.elsewhen( wrpipeNs.io.deq.valid) {
-    assert( inflight =/= 0.U)
+  }.elsewhen(wrpipeNs.io.deq.valid) {
+    assert(inflight =/= 0.U)
     inflight := inflight - 1.U
   }
-  when( state === sIdle) {
-    assert( inflight === 0.U)
+  when(state === sIdle) {
+    assert(inflight === 0.U)
     inflight := 0.U
   }
 
@@ -689,7 +689,7 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
   require(io.out.splitWidth == 1 && io.out.splitLength == 1, "-F- Out split write is not supported")
   for (idx1 <- 0 until numMVMs) {
 
-    val wrpipe2 = Module( new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency=1))
+    val wrpipe2 = Module(new Pipe(chiselTypeOf(io.acc.wr(0).bits.idx), latency=1))
     wrpipe2.io.enq := wrpipe(idx1).io.deq
 
     mvc(idx1).io.bypass_cond :=
@@ -702,7 +702,7 @@ class TensorGemmPipelinedSplit (implicit p: Parameters) extends TensorGemmIfc {
       ShiftRegister(inpRdData0(idx1/splitFactorL1), mvmInpRdLatency) // delay to deliver over distance
     mvc(idx1).io.wgt.data := io.wgt.rd(idx1).data // wgt read idx is delayed instead of data
     mvc(idx1).io.acc_i.data.valid := io.acc.rd(idx1).data.valid
-    assert( mvc(idx1).io.acc_o.data.valid === (wrpipe(idx1).io.deq.valid | mvc(idx1).io.valid_reset))
+    assert(mvc(idx1).io.acc_o.data.valid === (wrpipe(idx1).io.deq.valid | mvc(idx1).io.valid_reset))
     for(accLenIdx <- 0 until mvc(idx1).io.acc_o.lenSplit) {
       for(accWdtIdx <- 0 until mvc(idx1).io.acc_o.widthSplit) {
         val (gemmGrpIdx, gemmLenIdx, gemmWdtIdx) =
