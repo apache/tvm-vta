@@ -26,7 +26,7 @@ import unittest.util._
 import vta.core._
 import vta.util.config._
 
-class TensorGemmTester(c: TensorGemmOrig) extends PeekPokeTester(c) {
+class TensorGemmTester(c: TensorGemmSimple) extends PeekPokeTester(c) {
   poke(c.io.start, 0)
   poke(c.io.dec.reset, 0)
   poke(c.io.dec.uop_begin, 0)
@@ -159,10 +159,10 @@ class TensorGemmTester(c: TensorGemmOrig) extends PeekPokeTester(c) {
 
 }
 
-class TensorGemmTest extends GenericTest("TensorGemm", (p:Parameters) => new TensorGemmOrig()(p),
-  (c:TensorGemmOrig) => new TensorGemmTester(c))
+class TensorGemmTest extends GenericTest("TensorGemm", (p:Parameters) => new TensorGemmSimple()(p),
+  (c:TensorGemmSimple) => new TensorGemmTester(c))
 
-class TensorGemmIdxTester(c: TensorGemmOrig) extends PeekPokeTester(c) {
+class TensorGemmIdxTester(c: TensorGemmSimple) extends PeekPokeTester(c) {
 
   poke(c.io.start, 0)
 
@@ -348,8 +348,8 @@ class TensorGemmIdxTester(c: TensorGemmOrig) extends PeekPokeTester(c) {
   mocks.test_if_done()
 }
 
-class TensorGemmIdxTest extends GenericTest("TensorGemmIdx", (p:Parameters) => new TensorGemmOrig()(p),
-  (c:TensorGemmOrig) => new TensorGemmIdxTester(c))
+class TensorGemmIdxTest extends GenericTest("TensorGemmIdx", (p:Parameters) => new TensorGemmSimple()(p),
+  (c:TensorGemmSimple) => new TensorGemmIdxTester(c))
 
 class TensorGemmIndexGeneratorTester(c: TensorGemmIndexGenerator) extends PeekPokeTester(c) {
   val uop_begin = 0
