@@ -129,7 +129,7 @@ class TensorGemmTester(c: TensorGemmOrig) extends PeekPokeTester(c) {
   expect(c.io.acc.wr(0).valid, 0)
   expect(c.io.done, 0)
 
-  mocks.logical_step(0, 0 /*1*/)
+  mocks.logical_step(0, 0)
   expect(c.io.state, c.sWait)
   expect(c.io.inflight, 1)
 
