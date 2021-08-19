@@ -26,7 +26,7 @@ import requests
 import numpy as np
 
 import tvm
-from tvm.contrib import graph_runtime, download
+from tvm.contrib import graph_executor, download
 
 
 CTX = tvm.ext_dev(0)
@@ -50,7 +50,7 @@ def load_model():
 
     lib = tvm.runtime.load_module("./build/model/lib.so")
 
-    model = graph_runtime.create(graph, lib, CTX)
+    model = graph_executor.create(graph, lib, CTX)
 
     with open("./build/model/params.params", "rb") as paramfile:
         param_bytes = paramfile.read()
