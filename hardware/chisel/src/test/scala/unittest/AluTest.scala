@@ -56,7 +56,7 @@ object Alu_ref {
       // HLS shift left by >> negative number
       // b always < 0 when opcode == 4
       for (i <- 0 until size) {
-        res(i) = a(i) << ((-1*b(i)) & mask)
+        res(i) = a(i) << ((-1*b(i)) & mask).toInt
       }
     } else { // default
       for (i <- 0 until size) {

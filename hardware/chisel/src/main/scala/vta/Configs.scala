@@ -37,30 +37,30 @@ class DefaultDe10Config extends Config(new CoreConfig ++ new De10Config)
 
 object DefaultPynqConfig extends App {
   implicit val p: Parameters = new DefaultPynqConfig
-  chisel3.Driver.execute(args, () => new XilinxShell)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new XilinxShell, args)
 }
 
 object DefaultF1Config extends App {
   implicit val p: Parameters = new DefaultF1Config
-  chisel3.Driver.execute(args, () => new XilinxShell)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new XilinxShell, args)
 }
 
 object DefaultDe10Config extends App {
   implicit val p: Parameters = new DefaultDe10Config
-  chisel3.Driver.execute(args, () => new IntelShell)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new IntelShell, args)
 }
 
 object TestDefaultPynqConfig extends App {
   implicit val p: Parameters = new DefaultPynqConfig
-  chisel3.Driver.execute(args, () => new Test)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new Test, args)
 }
 
 object TestDefaultF1Config extends App {
   implicit val p: Parameters = new DefaultF1Config
-  chisel3.Driver.execute(args, () => new Test)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new Test, args)
 }
 
 object TestDefaultDe10Config extends App {
   implicit val p: Parameters = new DefaultDe10Config
-  chisel3.Driver.execute(args, () => new Test)
+  (new chisel3.stage.ChiselStage).emitSystemVerilog(new Test, args)
 }
