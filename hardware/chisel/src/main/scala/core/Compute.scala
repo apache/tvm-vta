@@ -66,7 +66,7 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
   //try to use the acc closest to top IO
   val topAccGrpIdx = tensorGemm.io.acc.closestIOGrpIdx
 
-  val inst_q = Module(new SyncQueueVTA(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
+  val inst_q = Module(new SyncQueue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
 
   // decode
   val dec = Module(new ComputeDecode)
@@ -122,7 +122,6 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
 
   // uop
   loadUop.io.start := state === sIdle & start & dec.io.isLoadUop
-  //loadUop.io.dec := inst_q.io.deq.bits.asTypeOf(new MemDecode)
   loadUop.io.inst := inst_q.io.deq.bits
   loadUop.io.baddr := io.uop_baddr
   io.vme_rd(0) <> loadUop.io.vme_rd

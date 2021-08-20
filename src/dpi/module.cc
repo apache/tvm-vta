@@ -120,7 +120,14 @@ class HostDevice {
 
 class MemDevice {
  public:
-  void  SetRequest(uint8_t rd_req_valid,uint64_t rd_req_addr, uint32_t rd_req_len, uint32_t rd_req_id, uint64_t wr_req_addr, uint32_t wr_req_len, uint8_t wr_req_valid);
+  void  SetRequest(
+    uint8_t  rd_req_valid,
+    uint64_t rd_req_addr,
+    uint32_t rd_req_len,
+    uint32_t rd_req_id,
+    uint64_t wr_req_addr,
+    uint32_t wr_req_len,
+    uint8_t  wr_req_valid);
   MemResponse ReadData(uint8_t ready, int blkNb);
   void WriteData(svOpenArrayHandle value, uint64_t wr_strb);
 
@@ -188,42 +195,32 @@ void HostDevice::WaitPopResponse(HostResponse* r) {
   resp_.WaitPop(r);
 }
 
-  void MemDevice::  SetRequest(uint8_t rd_req_valid,uint64_t rd_req_addr, uint32_t rd_req_len, uint32_t rd_req_id, uint64_t wr_req_addr, uint32_t wr_req_len, uint8_t wr_req_valid){
+void MemDevice::SetRequest(
+  uint8_t  rd_req_valid,
+  uint64_t rd_req_addr,
+  uint32_t rd_req_len,
+  uint32_t rd_req_id,
+  uint64_t wr_req_addr,
+  uint32_t wr_req_len,
+  uint8_t  wr_req_valid) {
 
   std::lock_guard<std::mutex> lock(mutex_);
-    if(rd_req_addr !=0 ){
-     void * rd_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(rd_req_addr);
-     if(rd_req_valid == 1) {
-         rlen_ = rd_req_len + 1;
-         rid_  = rd_req_id;
-         raddr_ = reinterpret_cast<uint64_t*>(rd_vaddr);
-      }
+  if(rd_req_addr !=0 ){
+    void * rd_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(rd_req_addr);
+    if(rd_req_valid == 1) {
+      rlen_ = rd_req_len + 1;
+      rid_  = rd_req_id;
+      raddr_ = reinterpret_cast<uint64_t*>(rd_vaddr);
     }
+  }
 
-    if(wr_req_addr != 0){
-       void * wr_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(wr_req_addr);
-       if (wr_req_valid == 1) {
-           wlen_ = wr_req_len + 1;
-            waddr_ = reinterpret_cast<uint64_t*>(wr_vaddr);
-         } 
-    }
-
- //    if(wr_req_addr != 0 && rd_req_addr!=0){
-    
- //  std::lock_guard<std::mutex> lock(mutex_);
- //  void * wr_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(wr_req_addr);
- //  void * rd_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(rd_req_addr);
- //  if (wr_req_valid == 1) {
- //    wlen_ = wr_req_len + 1;
- //    waddr_ = reinterpret_cast<uint64_t*>(wr_vaddr);
-    
- //  } 
- //  if(rd_req_valid == 1) {
- //    rlen_ = rd_req_len + 1;
- //    rid_  = rd_req_id;
- //    raddr_ = reinterpret_cast<uint64_t*>(rd_vaddr);
- //  }
- // }
+  if(wr_req_addr != 0){
+    void * wr_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(wr_req_addr);
+    if (wr_req_valid == 1) {
+      wlen_ = wr_req_len + 1;
+      waddr_ = reinterpret_cast<uint64_t*>(wr_vaddr);
+    } 
+  }
 }
 
 MemResponse MemDevice::ReadData(uint8_t ready, int blkNb) {
@@ -285,9 +282,9 @@ class DPIModule final : public DPIModuleNode {
       const ObjectPtr<Object>& sptr_to_self) final {
     if (name == "WriteReg") {
       return TypedPackedFunc<void(int, int)>(
-          [this](int addr, int value){
-            this->WriteReg(addr, value);
-          });
+        [this](int addr, int value){
+           this->WriteReg(addr, value);
+        });
     } else {
       LOG(FATAL) << "Member " << name << "does not exists";
       return nullptr;
@@ -297,7 +294,7 @@ class DPIModule final : public DPIModuleNode {
   void Init(const std::string& name) {
     Load(name);
     VTADPIInitFunc finit =  reinterpret_cast<VTADPIInitFunc>(
-        GetSymbol("VTADPIInit"));
+      GetSymbol("VTADPIInit"));
     CHECK(finit != nullptr);
     finit(this, VTASimDPI, VTAHostDPI, VTAMemDPI);
     ftsim_ = reinterpret_cast<VTADPISimFunc>(GetSymbol("VTADPISim"));
@@ -410,7 +407,14 @@ class DPIModule final : public DPIModuleNode {
       mem_device_.WriteData(wr_value, wr_strb);
     }
     if (rd_req_valid || wr_req_valid) {
-     mem_device_.SetRequest( rd_req_valid, rd_req_addr,  rd_req_len,  rd_req_id,  wr_req_addr,  wr_req_len,  wr_req_valid);
+     mem_device_.SetRequest(
+       rd_req_valid,
+       rd_req_addr,
+       rd_req_len,
+       rd_req_id,
+       wr_req_addr,
+       wr_req_len,
+       wr_req_valid);
     }
 
     
@@ -442,8 +446,8 @@ class DPIModule final : public DPIModuleNode {
       dpi8_t resp_valid,
       dpi32_t resp_value) {
     static_cast<DPIModule*>(self)->HostDPI(
-        req_valid, req_opcode, req_addr,
-        req_value, req_deq, resp_valid, resp_value);
+      req_valid, req_opcode, req_addr,
+      req_value, req_deq, resp_valid, resp_value);
   }
 
   static void VTAMemDPI(
@@ -463,10 +467,10 @@ class DPIModule final : public DPIModuleNode {
     const svOpenArrayHandle rd_value,
     dpi8_t rd_ready) {
     static_cast<DPIModule*>(self)->MemDPI(
-	rd_req_valid, rd_req_len,rd_req_id,
-        rd_req_addr, wr_req_valid, wr_req_len, wr_req_addr,
-        wr_valid, wr_value, wr_strb,
-        rd_valid,rd_id,rd_value, rd_ready);
+      rd_req_valid, rd_req_len, rd_req_id,
+      rd_req_addr, wr_req_valid, wr_req_len, wr_req_addr,
+      wr_valid, wr_value, wr_strb,
+      rd_valid, rd_id, rd_value, rd_ready);
   }
 
  private:

@@ -36,7 +36,6 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
   })
   val uopsPerMemXfer = p(ShellKey).memParams.dataBits / p(CoreKey).uopBits
   require(p(ShellKey).memParams.dataBits % p(CoreKey).uopBits == 0)
-  //require(uopsPerMemXfer == 1 || uopsPerMemXfer == 2)
 
   val uopBits = p(CoreKey).uopBits
   val uopBytes = uopBits / 8

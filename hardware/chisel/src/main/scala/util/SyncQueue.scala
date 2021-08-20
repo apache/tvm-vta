@@ -25,7 +25,7 @@ import chisel3.util._
 import vta.util.config._
 
 //! Queue with SRAM one port or 1r1W
-class SyncQueueVTA[T <: Data](
+class SyncQueue[T <: Data](
     gen: T,
     val entries: Int,
     pipe: Boolean = false,

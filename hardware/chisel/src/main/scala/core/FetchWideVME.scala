@@ -19,8 +19,6 @@
 
 package vta.core
 
-//import scala.math.pow
-
 import chisel3._
 import chisel3.util._
 import vta.util.config._
@@ -65,7 +63,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
     SyncReadMem(tp.memDepth/tensorsInClNb, UInt(tp.tensorSizeBits.W))
   }
 
-  //sample start
+  // sample start
   val s1_launch = RegNext(io.launch, init = false.B)
   val start = io.launch & ~s1_launch
 
@@ -168,8 +166,6 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
 
   val readData = Module(new ReadVMEDataWide("fetch", debug))
   readData.io.start := vmeStart
-  //io.vme_rd.data <> readData.io.vmeData
-  //pipeDelayQueueDeq <> readData.io.vmeData
   readData.io.vmeData.valid := pipeDelayQueueDeqV
   readData.io.vmeData.bits := pipeDelayQueueDeqB
   assert(readData.io.vmeData.ready === true.B)
@@ -225,7 +221,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   val canRead = queueCount >= elemsInInstr.U && state === sDrain
   // instruction queues
 
-  //use 2-enty queue to create one pipe stage for valid-ready interface
+  // use 2-enty queue to create one pipe stage for valid-ready interface
   val readInstrPipe = Module(new Queue(UInt(INST_BITS.W), 2))
 
   // decode
@@ -274,7 +270,6 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
       queueHeadNext := queueHeadNext + elemsInInstr.U
     }
   }.otherwise {
-    // check if queueCount === 0.U -> queueHeadNext === 0.U
     assert(reset.toBool || state === sIdle || queueCount =/= 0.U ||
       (queueCount === 0.U && queueHeadNext === 0.U))
     queueHead := queueHeadNext

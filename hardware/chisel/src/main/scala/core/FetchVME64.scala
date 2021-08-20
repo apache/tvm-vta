@@ -55,7 +55,7 @@ class Fetch64Bit(debug: Boolean = false)(implicit p: Parameters) extends Module 
     }
   })
   val entries_q = 1 << (mp.lenBits - 1) // one-instr-every-two-vme-word
-  val inst_q = Module(new SyncQueueVTA(UInt(INST_BITS.W), entries_q))
+  val inst_q = Module(new SyncQueue(UInt(INST_BITS.W), entries_q))
   val dec = Module(new FetchDecode)
 
   val s1_launch = RegNext(io.launch, init = false.B)
