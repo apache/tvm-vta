@@ -109,7 +109,7 @@ class VTAMemDPI(implicit val p: Parameters) extends BlackBox(
     val reset = Input(Bool())
     val dpi = new VTAMemDPIClient
   })
-  setResource("/verilog/VTAMemDPI.v")
+  addResource("/verilog/VTAMemDPI.v")
 }
 
 class VTAMemDPIToAXI(debug: Boolean = true)(implicit val p: Parameters) extends Module {
