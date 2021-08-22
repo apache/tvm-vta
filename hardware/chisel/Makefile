@@ -63,7 +63,7 @@ SANITIZE = 0
 CXX_MAJOR := $(shell $(CXX) -dumpversion | sed 's/\..*//')
 CXX_HAS_ALIGN_NEW := $(shell [ $(CXX_MAJOR) -ge 7 ] && echo true)
 
-config_test = $(TOP_TEST)$(CONFIG)
+CONFIG_TEST = $(TOP_TEST)$(CONFIG)
 
 
 ifndef TVM_PATH
@@ -182,16 +182,16 @@ $(lib_path): $(verilator_build_dir)/V$(TOP_TEST).cpp $(cxx_objs)
 	$(CXX) $(ld_flags) $(cxx_flags) $(cxx_objs) $(patsubst %.cpp,%.cpp.o,$(shell find $(verilator_build_dir)/*.cpp)) -o $@
 
 verilator: $(verilator_build_dir)/V$(TOP_TEST).cpp
-$(verilator_build_dir)/V$(TOP_TEST).cpp: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).v
+$(verilator_build_dir)/V$(TOP_TEST).cpp: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv
 	verilator $(verilator_opt) $<
 
-verilog: $(chisel_build_dir)/$(TOP).$(CONFIG).v
-$(chisel_build_dir)/$(TOP).$(CONFIG).v:
-	sbt 'runMain vta.$(CONFIG) --target-dir $(chisel_build_dir) --top-name $(TOP).$(CONFIG)'
+verilog: $(chisel_build_dir)/$(TOP).$(CONFIG).sv
+$(chisel_build_dir)/$(TOP).$(CONFIG).sv:
+	sbt 'runMain vta.$(CONFIG) --target-dir $(chisel_build_dir) -o $(TOP).$(CONFIG)'
 
-verilog_test: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).v
-$(chisel_build_dir)/$(TOP_TEST).$(CONFIG).v:
-	sbt 'runMain vta.$(config_test) --target-dir $(chisel_build_dir) --top-name $(TOP_TEST).$(CONFIG)'
+verilog_test: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv
+$(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv:
+	sbt 'runMain vta.$(CONFIG_TEST) --target-dir $(chisel_build_dir) -o $(TOP_TEST).$(CONFIG)'
 
 unittest:
 	sbt 'test:runMain unittest.Launcher $(UNITTEST_NAME)'
