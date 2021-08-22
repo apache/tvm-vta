@@ -205,7 +205,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   val rdataVec =   for (i <- 0 until tensorsInClNb) yield {
     // expand mask to select all elems of instruction
     val maskShift = i%elemsInInstr
-    inst_q(i).read(rIdx, VecInit((rMask<<maskShift).asTypeOf(rMask).toBools)(i) && (deqElem || forceRead))
+    inst_q(i).read(rIdx, VecInit((rMask<<maskShift).asTypeOf(rMask).asBools)(i) && (deqElem || forceRead))
 
   }
 
@@ -270,7 +270,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
       queueHeadNext := queueHeadNext + elemsInInstr.U
     }
   }.otherwise {
-    assert(reset.toBool || state === sIdle || queueCount =/= 0.U ||
+    assert(reset.asBool || state === sIdle || queueCount =/= 0.U ||
       (queueCount === 0.U && queueHeadNext === 0.U))
     queueHead := queueHeadNext
     queueHeadNext := queueHeadNext

@@ -298,7 +298,7 @@ class TensorLoadWideVME(tensorType: String = "none", debug: Boolean = false)(
         tensorFile(
           i*splitDataFactor*splitMemFactor + grpIdx * splitMemFactor + memIdx).read(
             ShiftRegister(rIdx, tp.readTensorLatency),
-            ShiftRegister(VecInit(rMask.toBools)(i), tp.readTensorLatency, resetData = false.B, en = true.B))
+            ShiftRegister(VecInit(rMask.asBools)(i), tp.readTensorLatency, resetData = false.B, en = true.B))
       }).asUInt
     }
 

@@ -40,13 +40,14 @@ class SyncQueue[T <: Data](
   require (!pipe, "-F- Not supported")
   require (!flow, "-F- Not supported")
 
-  val queue = if (forceSimpleQueue) {
-    Module(new Queue(genType.asUInt, entries))
+  if (forceSimpleQueue) {
+    val queue = Module(new Queue(genType.asUInt, entries))
+    io <> queue.io
   } else {
-    Module(new SyncQueue2PortMem(genType.asUInt, entries))
+    val queue = Module(new SyncQueue2PortMem(genType.asUInt, entries))
+    io <> queue.io
   }
 
-  io <> queue.io
 
 }
 
@@ -68,13 +69,14 @@ class SyncQueue1PortMem[T <: Data](
   require (!pipe, "-F- Not supported")
   require (!flow, "-F- Not supported")
 
-  val queue = if (entries < 4 ) {
-    Module(new Queue(genType.asUInt, entries))
+  if (entries < 4 ) {
+    val queue =  Module(new Queue(genType.asUInt, entries))
+    io <> queue.io
   } else {
-    Module(new SyncQueue1PortMemImpl(genType.asUInt, entries))
+    val queue = Module(new SyncQueue1PortMemImpl(genType.asUInt, entries))
+    io <> queue.io
   }
 
-  io <> queue.io
 
 }
 class SyncQueue1PortMemImpl[T <: Data](
@@ -142,13 +144,14 @@ class SyncQueue2PortMem[T <: Data](
   require (!pipe, "-F- Not supported")
   require (!flow, "-F- Not supported")
 
-  val queue = if (entries < 4 ) {
-    Module(new Queue(genType.asUInt, entries))
+  if (entries < 4 ) {
+    val queue = Module(new Queue(genType.asUInt, entries))
+    io <> queue.io
   } else {
-    Module(new SyncQueue2PortMemImpl(genType.asUInt, entries))
+    val queue = Module(new SyncQueue2PortMemImpl(genType.asUInt, entries))
+    io <> queue.io
   }
 
-  io <> queue.io
 }
 
 class SyncQueue2PortMemImpl[T <: Data](
@@ -502,16 +505,4 @@ class TwoPortMem[T <: Data](
     io.rd_data := mem.read(io.rd_addr, io.rd_en)
   }
 
-}
-
-//*****************************************************************************
-object SyncQueueMain {
-  def main(args: Array[String]): Unit = {
-    chisel3.Driver.execute(args, () => new SyncQueue1PortMem(UInt(16.W), 8))
-  }
-}
-object OnePortMemMain {
-  def main(args: Array[String]): Unit = {
-    chisel3.Driver.execute(args, () => new OnePortMem(UInt(16.W), 8, ""))
-  }
 }
