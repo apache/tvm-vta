@@ -32,7 +32,7 @@ import vta.shell._
 class VTASimDPI extends BlackBox with HasBlackBoxResource {
   val io = IO(new Bundle {
     val clock = Input(Clock())
-    val reset = Input(Bool())
+    val reset = Input(Reset())
     val dpi_wait = Output(Bool())
   })
   addResource("/verilog/VTASimDPI.v")
