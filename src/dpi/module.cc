@@ -38,6 +38,10 @@
 
 #include "../vmem/virtual_memory.h"
 
+// Include verilator array access functions code
+#include "verilated.cpp"
+#include "verilated_dpi.cpp"
+
 namespace vta {
 namespace dpi {
 
