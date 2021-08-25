@@ -54,26 +54,22 @@ class TensorLoad(tensorType: String = "none", debug: Boolean = false)(
 
   val forceSimpleTensorLoad = false // force a simple implemetation of TL
 
-  val tensorLoad =
-    Module(
-      if (forceSimpleTensorLoad) {
-        // use
-        new TensorLoadSimple(tensorType, debug)
-      } else {
-        if (mp.dataBits >= tp.tensorSizeBits) {
-        // cacheline is wider than tensor size,
-        // macro memory bitwidth by cache size
-        // bank by tansor size
-        new TensorLoadWideVME(tensorType, debug)
-      } else {
-        // tensor is wider than cacheline, bank by
-        // macro memory bitwidth by tansor size
-        // bank by cacheline size
-        new TensorLoadNarrowVME(tensorType, debug)
-      }
-    })
-
+  if (forceSimpleTensorLoad) {
+    // use
+    val tensorLoad = Module(new TensorLoadSimple(tensorType, debug))
     io <> tensorLoad.io
-
+  } else if (mp.dataBits >= tp.tensorSizeBits) {
+    // cacheline is wider than tensor size,
+    // macro memory bitwidth by cache size
+    // bank by tansor size
+    val tensorLoad = Module(new TensorLoadWideVME(tensorType, debug))
+    io <> tensorLoad.io
+  } else {
+    // tensor is wider than cacheline, bank by
+    // macro memory bitwidth by tansor size
+    // bank by cacheline size
+    val tensorLoad = Module(new TensorLoadNarrowVME(tensorType, debug))
+    io <> tensorLoad.io
+  }
 }
 

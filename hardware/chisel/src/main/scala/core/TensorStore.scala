@@ -46,18 +46,17 @@ class TensorStore(tensorType: String = "none", debug: Boolean = false)(
 
   val forceSimpleStore = false // force original store flow. Narrow it is
 
-  val tensorStore =
-    Module(if (mp.dataBits >= tp.tensorSizeBits && !forceSimpleStore) {
-      // cacheline is wider than tensor size,
-      // macro memory bitwidth by cache size
-      // bank by tansor size
-      new TensorStoreWideVME(tensorType, debug)
-    } else {
-      // tensor is wider than cacheline, bank by
-      // macro memory bitwidth by tensor size
-      // bank by cacheline size
-      new TensorStoreNarrowVME(tensorType, debug)
-    })
-
+  if (mp.dataBits >= tp.tensorSizeBits && !forceSimpleStore) {
+    // cacheline is wider than tensor size,
+    // macro memory bitwidth by cache size
+    // bank by tansor size
+    val tensorStore = Module(new TensorStoreWideVME(tensorType, debug))
     io <> tensorStore.io
+  } else {
+    // tensor is wider than cacheline, bank by
+    // macro memory bitwidth by tensor size
+    // bank by cacheline size
+    val tensorStore = Module(new TensorStoreNarrowVME(tensorType, debug))
+    io <> tensorStore.io
+  }
 }

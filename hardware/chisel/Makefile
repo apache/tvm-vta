@@ -63,7 +63,7 @@ SANITIZE = 0
 CXX_MAJOR := $(shell $(CXX) -dumpversion | sed 's/\..*//')
 CXX_HAS_ALIGN_NEW := $(shell [ $(CXX_MAJOR) -ge 7 ] && echo true)
 
-config_test = $(TOP_TEST)$(CONFIG)
+CONFIG_TEST = $(TOP_TEST)$(CONFIG)
 
 
 ifndef TVM_PATH
@@ -189,9 +189,9 @@ verilog: $(chisel_build_dir)/$(TOP).$(CONFIG).sv
 $(chisel_build_dir)/$(TOP).$(CONFIG).sv:
 	sbt 'runMain vta.$(CONFIG) --target-dir $(chisel_build_dir) -o $(TOP).$(CONFIG)'
 
-verilog_test: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).v
+verilog_test: $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv
 $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv:
-	sbt 'runMain vta.$(config_test) --target-dir $(chisel_build_dir) -o $(TOP_TEST).$(CONFIG)'
+	sbt 'runMain vta.$(CONFIG_TEST) --target-dir $(chisel_build_dir) -o $(TOP_TEST).$(CONFIG)'
 
 unittest:
 	sbt 'test:runMain unittest.Launcher $(UNITTEST_NAME)'

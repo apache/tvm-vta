@@ -106,7 +106,7 @@ class VTAMemDPI(implicit val p: Parameters) extends BlackBox(
 
   val io = IO(new Bundle {
     val clock = Input(Clock())
-    val reset = Input(Bool())
+    val reset = Input(Reset())
     val dpi = new VTAMemDPIClient
   })
   addResource("/verilog/VTAMemDPI.v")

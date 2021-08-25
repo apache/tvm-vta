@@ -60,14 +60,15 @@ class Fetch(debug: Boolean = false)(implicit p: Parameters) extends Module {
   if (forceSimpleFetch) {
     require (mp.dataBits <= 128, "-F- Simple VME data transfer doesnt support fetch data wider than instruction.")
   }
-  val fetch =
-    Module(if (mp.dataBits >= 128 && !forceSimpleFetch) {
-      // wide cacheline
-      new FetchWideVME(debug)
-    } else {
-      require(mp.dataBits == 64, "-F- Cannot make simple Fetch for more than 64 bit data read")
-      new Fetch64Bit(debug) // Simple
-    })
 
+  if (mp.dataBits >= 128 && !forceSimpleFetch) {
+    // wide cacheline
+    val fetch = Module(new FetchWideVME(debug))
     io <> fetch.io
+  } else {
+    require(mp.dataBits == 64, "-F- Cannot make simple Fetch for more than 64 bit data read")
+    val fetch = Module(new Fetch64Bit(debug)) // Simple
+    io <> fetch.io
+  }
+
 }

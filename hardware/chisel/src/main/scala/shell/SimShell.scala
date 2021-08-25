@@ -37,7 +37,7 @@ class VTAHost(implicit p: Parameters) extends Module {
   })
   val host_dpi = Module(new VTAHostDPI)
   val host_axi = Module(new VTAHostDPIToAXI)
-  host_dpi.io.reset := reset.asBool
+  host_dpi.io.reset := reset
   host_dpi.io.clock := clock
   host_axi.io.dpi <> host_dpi.io.dpi
   io.axi <> host_axi.io.axi
@@ -55,7 +55,7 @@ class VTAMem(implicit p: Parameters) extends Module {
   })
   val mem_dpi = Module(new VTAMemDPI)
   val mem_axi = Module(new VTAMemDPIToAXI)
-  mem_dpi.io.reset := reset.asBool
+  mem_dpi.io.reset := reset
   mem_dpi.io.clock := clock
   mem_dpi.io.dpi <> mem_axi.io.dpi
   mem_axi.io.axi <> io.axi
@@ -71,7 +71,7 @@ class VTAMem(implicit p: Parameters) extends Module {
 class VTASim(implicit p: Parameters) extends MultiIOModule {
   val sim_wait = IO(Output(Bool()))
   val sim = Module(new VTASimDPI)
-  sim.io.reset := reset.asBool
+  sim.io.reset := reset
   sim.io.clock := clock
   sim_wait := sim.io.dpi_wait
 }
