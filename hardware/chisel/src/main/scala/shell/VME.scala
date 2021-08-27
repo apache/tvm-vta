@@ -229,12 +229,13 @@ class VME(implicit p: Parameters) extends Module {
   availableEntries := availableEntriesNext
   updateEntry := VecInit(IndexedSeq.tabulate(RequestQueueDepth){ i => i.U === (io.mem.r.bits.id).asUInt }).asUInt
   }
-  //Cmd Queues for eaach VME client
+  // Cmd Queues for eaach VME client
   val VMEcmd_Qs = IndexedSeq.fill(5){ Module(new Queue(new VMECmd, clientCmdQueueDepth))}
 
   //---------------------------------------
   //--- Find available buffer entries -----
   //---------------------------------------
+  
   def firstOneOH (in: UInt) = {
     val oneHotIdx = for(bitIdx <- 0 until in.getWidth) yield {
       if (bitIdx == 0){
@@ -301,10 +302,10 @@ class VME(implicit p: Parameters) extends Module {
     }
   }
 
-  //We need one clock cycle to look up the local tag from the
-  //centralized tag buffer vmeTag_array
-  //Adding a flop stage for mem.r.data, mem.r.last, mem.r.valid
-  //till local tag lookup is performed.
+  // We need one clock cycle to look up the local tag from the
+  // centralized tag buffer vmeTag_array
+  // Adding a flop stage for mem.r.data, mem.r.last, mem.r.valid
+  // till local tag lookup is performed.
   io.mem.r.ready  := true.B
   vmeTag_array_rd_addr :=  io.mem.r.bits.id
   localTag_out         :=  vmeTag_array(vmeTag_array_rd_addr)
@@ -320,7 +321,7 @@ class VME(implicit p: Parameters) extends Module {
     io.vme.rd(i).data.bits.tag  := localTag_out.client_tag
   }
 
-  //VME <-> AXI write interface
+  // VME <-> AXI write interface
   val wr_len = RegInit(0.U(lenBits.W))
   val wr_addr = RegInit(0.U(addrBits.W))
   val sWriteIdle :: sWriteAddr :: sWriteData :: sWriteResp :: Nil = Enum(4)
