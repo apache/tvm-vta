@@ -22,12 +22,8 @@
 // See documents at https://jenkins.io/doc/book/pipeline/jenkinsfile/
 
 ci_lint = "tlcpack/ci-lint:v0.67"
-ci_gpu = "tlcpack/ci-gpu:v0.77"
 ci_cpu = "tlcpack/ci-cpu:v0.77"
-ci_wasm = "tlcpack/ci-wasm:v0.71"
 ci_i386 = "tlcpack/ci-i386:v0.73"
-ci_qemu = "tlcpack/ci-qemu:v0.08"
-ci_arm = "tlcpack/ci-arm:v0.06"
 
 // command to start a docker container
 // NOTE: docker container provides an extra layer of isolation
