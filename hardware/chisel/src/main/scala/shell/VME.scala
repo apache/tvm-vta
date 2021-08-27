@@ -386,15 +386,11 @@ class VMETop(implicit p: Parameters) extends Module {
 
   val forceSimpleVME = false // force simple vme for simple tensor load/uop/fetch
 
-  val vme =
-    Module(
-      if (forceSimpleVME) {
-        new VMESimple
-      } else {
-        new VME
-      }
-    )
-
+  if (forceSimpleVME) {
+    val vme = Module(new VMESimple)
     io <> vme.io
-
+  } else {
+    val vme = Module(new VME)
+    io <> vme.io
+  }
 }
