@@ -25,10 +25,16 @@ cd tvm
 
 export LD_LIBRARY_PATH="lib:${LD_LIBRARY_PATH:-}"
 
-# Remove existing testcases
-rm -f build/*_test
+# to avoid CI thread throttling.
+export TVM_BIND_THREADS=0
+export OMP_NUM_THREADS=1
 
-make cpptest -j8
-for test in build/*_test; do
-    ./$test
-done
+# Build cpptest suite
+make cpptest -j2
+
+# "make crttest" requires USE_MICRO to be enabled, which is not always the case.
+if grep crttest build/Makefile > /dev/null; then
+    make crttest  # NOTE: don't parallelize, due to issue with build deps.
+fi
+
+cd build && ctest --gtest_death_test_style=threadsafe && cd ..
