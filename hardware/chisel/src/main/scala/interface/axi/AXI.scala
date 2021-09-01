@@ -190,6 +190,9 @@ class AXIMaster(params: AXIParams) extends AXIBase(params) {
     r.ready := false.B
   }
 
+  // These values are not changed in VTA
+  // Usually means that there is no implementation for
+  // alternative behavior
   def setConst() {
     aw.bits.user := params.userConst.U
     aw.bits.burst := params.burstConst.U
@@ -199,8 +202,6 @@ class AXIMaster(params: AXIParams) extends AXIBase(params) {
     aw.bits.qos := params.qosConst.U
     aw.bits.region := params.regionConst.U
     aw.bits.size := params.sizeConst.U
-    aw.bits.id := params.idConst.U
-    w.bits.id := params.idConst.U
     w.bits.user := params.userConst.U
     ar.bits.user := params.userConst.U
     ar.bits.burst := params.burstConst.U

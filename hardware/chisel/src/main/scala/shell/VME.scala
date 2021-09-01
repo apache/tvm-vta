@@ -330,10 +330,12 @@ class VME(implicit p: Parameters) extends Module {
   io.mem.aw.valid := wstate === sWriteAddr
   io.mem.aw.bits.addr := wr_addr
   io.mem.aw.bits.len := wr_len
+  io.mem.aw.bits.id  := p(ShellKey).memParams.idConst.U // no support for multiple writes
   io.mem.w.valid := wstate === sWriteData & io.vme.wr(0).data.valid
   io.mem.w.bits.data := io.vme.wr(0).data.bits.data
   io.mem.w.bits.strb := io.vme.wr(0).data.bits.strb
   io.mem.w.bits.last := wr_cnt === wr_len
+  io.mem.w.bits.id   := p(ShellKey).memParams.idConst.U // no support for multiple writes
   io.mem.b.ready := wstate === sWriteResp
   when(io.vme.wr(0).cmd.fire()) {
     wr_len := io.vme.wr(0).cmd.bits.len
