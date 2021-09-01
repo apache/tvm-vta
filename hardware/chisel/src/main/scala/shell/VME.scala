@@ -158,7 +158,6 @@ class VMEWriteClient(implicit p: Parameters) extends Bundle {
   new VMEWriteClient().asInstanceOf[this.type]
 }
 
-
 /** VMEMaster.
  *
  * Pack nRd number of VMEReadMaster interfaces and nWr number of VMEWriteMaster
@@ -188,7 +187,6 @@ class VMEClient(implicit p: Parameters) extends Bundle {
  * This unit multiplexes the memory controller interface for the Core. Currently,
  * it supports single-writer and multiple-reader mode and it is also based on AXI.
  */
-
 class VME(implicit p: Parameters) extends Module {
   val io = IO(new Bundle {
     val mem = new AXIMaster(p(ShellKey).memParams)

@@ -202,7 +202,6 @@ class AXIMaster(params: AXIParams) extends AXIBase(params) {
     aw.bits.id := params.idConst.U
     w.bits.id := params.idConst.U
     w.bits.user := params.userConst.U
-    //w.bits.strb := Fill(params.strbBits, true.B)
     ar.bits.user := params.userConst.U
     ar.bits.burst := params.burstConst.U
     ar.bits.lock := params.lockConst.U
@@ -211,7 +210,6 @@ class AXIMaster(params: AXIParams) extends AXIBase(params) {
     ar.bits.qos := params.qosConst.U
     ar.bits.region := params.regionConst.U
     ar.bits.size := params.sizeConst.U
-    //do not override
   }
 }
 
