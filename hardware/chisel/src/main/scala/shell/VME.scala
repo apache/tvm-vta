@@ -235,7 +235,6 @@ class VME(implicit p: Parameters) extends Module {
   //---------------------------------------
   //--- Find available buffer entries -----
   //---------------------------------------
-  
   def firstOneOH (in: UInt) = {
     val oneHotIdx = for(bitIdx <- 0 until in.getWidth) yield {
       if (bitIdx == 0){
