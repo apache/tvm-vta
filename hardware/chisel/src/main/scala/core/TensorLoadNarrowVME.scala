@@ -81,7 +81,7 @@ class TensorLoadNarrowVME(tensorType: String = "none", debug: Boolean = false)(
   val readLen = vmeCmd.io.readLen
   val commandsDone = vmeCmd.io.done
 
-  // count how many blocks not receved
+  // count how many blocks not received
   val blkIdxWdth = log2Ceil(tp.tsSizeRatio * tp.memDepth) // the size of scratchpad in blocks
   // Nb of data blocks requestd, not received. TODO: smaller width parameter
   val blocksInFlight = Reg(UInt(blkIdxWdth.W))
@@ -300,9 +300,9 @@ class TensorLoadNarrowVME(tensorType: String = "none", debug: Boolean = false)(
 //-------------------------
 
 //----------------------------------------------------------------------------
-// Fill tensors with zeros is padding is defined
+// Fill tensors with zeros if padding is defined
 // stride must be used (xstride and ysize) if xpad_0 or xpad_1
-// are not zero and matrix xas more than one row of tensors
+// are not zero and matrix has more than one row of tensors
 // zp states enoumerate different types of padding blocks
 // TOP - width = dec.xpad_0 + dec.xstride + dec.xpad_1; height = dec.ypad_0
 // LEFT - width = dec.xpad_0; height = dec.ysize
@@ -466,7 +466,7 @@ class ZeroPadding(tensorType: String = "none", debug: Boolean = false)(
 //----------------------------------------------------------------------------
 // Read VME data. Generate Memory index and data
 // transaction TAG is a data block offset in scratchpad
-// Different transactions are identified by atag change
+// Different transactions are identified by tag change
 // SAME DESTINATION SUBSEQUENT REQUESTS IN ONE INSTRUCTION LEADS TO UNDEFINED BEHAVIOR
 //----------------------------------------------------------------------------
 class ReadVMEData(tensorType: String = "none", debug: Boolean = false)(
@@ -544,7 +544,7 @@ class ReadVMEData(tensorType: String = "none", debug: Boolean = false)(
 }
 
 // transaction TAG is a data block offset in scratchpad
-// Different transactions are identified by atag change
+// Different transactions are identified by tag change
 // SAME DESTINATION SUBSEQUENT REQUESTS IN ONE INSTRUCTION LEADS TO UNDEFINED BEHAVIOR
 class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
     implicit p: Parameters)

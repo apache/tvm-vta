@@ -116,7 +116,6 @@ class TestSyncQueueLongRead(c: SyncQueueTestWrapper[UInt]) extends PeekPokeTeste
   val chr = new Checker (c, this)
 
   def testFillRW(depth: Int) = {
-    //println(s"-D- run test depth ${depth}")
     val qsize = peek(c.io.tq.count)
     require(qsize == 0, s"-F- An empty queue is expected ${qsize}")
 
@@ -159,7 +158,6 @@ class TestSyncQueueWaveRead(c: SyncQueueTestWrapper[UInt]) extends PeekPokeTeste
   val chr = new Checker (c, this)
 
   def testFillRW(depth: Int) = {
-    //println(s"-D- run test depth ${depth}")
     val qsize = peek(c.io.tq.count)
     require(qsize == 0, s"-F- An empty queue is expected ${qsize}")
 
@@ -226,7 +224,7 @@ class SyncQueueTestWrapper[T <: Data](
   tq.io.enq.valid := RegNext(io.tq.enq.valid)
   tq.io.enq.bits := RegNext(io.tq.enq.bits)
   tq.io.deq.ready := RegNext(io.tq.deq.ready)
-  //connect refernece queue inpot to test input
+  // connect reference queue inport to test input
   rq.io.enq.valid := RegNext(io.tq.enq.valid)
   rq.io.enq.bits := RegNext(io.tq.enq.bits)
   rq.io.deq.ready := RegNext(io.tq.deq.ready)

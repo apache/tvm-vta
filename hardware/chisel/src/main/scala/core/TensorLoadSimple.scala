@@ -237,7 +237,6 @@ class TensorLoadSimple(tensorType: String = "none", debug: Boolean = false)(
 
   if (false) {
     val memDumpGuard = WireInit(false.B)
-    //BoringUtils.addSink(memDumpGuard, "scratchPadMemDumpGuard")
     when (memDumpGuard) {
       for {
         idx <- 0 until scala.math.min(64,tp.memDepth)

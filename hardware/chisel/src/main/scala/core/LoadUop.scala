@@ -84,9 +84,6 @@ class LoadUopTop(debug: Boolean = false)(implicit val p: Parameters) extends Mod
     io.uop <> loadUop.io.uop
 
   } else {
-    //println(
-    //  "-W- New LoadUop requires new tensorLoad. Disable simple tensor load" +
-    //  " or set simple uop load")
     val loadUop = Module(new TensorLoad(tensorType = "uop"))
     loadUop.io.tensor.tieoffWrite()
 

@@ -62,7 +62,7 @@ void VTAHostDPI(dpi8_t* req_valid,
 
 void VTAMemDPI(dpi8_t rd_req_valid,
                dpi8_t rd_req_len,
-	       dpi8_t rd_req_id,
+               dpi8_t rd_req_id,
                dpi64_t rd_req_addr,
                dpi8_t wr_req_valid,
                dpi8_t wr_req_len,
@@ -71,7 +71,7 @@ void VTAMemDPI(dpi8_t rd_req_valid,
                const svOpenArrayHandle wr_value,
                dpi64_t wr_strb,
                dpi8_t* rd_valid,
-	       dpi8_t* rd_id,
+               dpi8_t* rd_id,
                const svOpenArrayHandle  rd_value,
                dpi8_t rd_ready) {
   assert(_mem_dpi != nullptr);
