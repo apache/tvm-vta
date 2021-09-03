@@ -303,7 +303,7 @@ class TensorLoadNarrowVME(tensorType: String = "none", debug: Boolean = false)(
 // Fill tensors with zeros if padding is defined
 // stride must be used (xstride and ysize) if xpad_0 or xpad_1
 // are not zero and matrix has more than one row of tensors
-// zp states enoumerate different types of padding blocks
+// zp states enumerate different types of padding blocks
 // TOP - width = dec.xpad_0 + dec.xstride + dec.xpad_1; height = dec.ypad_0
 // LEFT - width = dec.xpad_0; height = dec.ysize
 // RIGHT - width = dec.xpad_1; height = dec.ysize

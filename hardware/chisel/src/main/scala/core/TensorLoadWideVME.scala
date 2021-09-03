@@ -725,6 +725,7 @@ class GenVMECmdWide(tensorType: String = "none", debug: Boolean = false)(
   io.lstPulseDataEnd := rdCmdLastPluseTensNb // last pulse data end
   io.done := commandsDone
 }
+
 class GenVMECmdWideTL(tensorType: String = "none", debug: Boolean = false)(
     implicit p: Parameters)
     extends Module {
@@ -739,11 +740,8 @@ class GenVMECmdWideTL(tensorType: String = "none", debug: Boolean = false)(
     val readLen = Output(UInt((mp.lenBits + 1).W))
     val done = Output(Bool())
   })
-  //del val sizeFactor = tp.tensorLength * tp.numMemBlock
-
 
   val dec = io.inst.asTypeOf(new MemDecode)
-
 
   val cmdGen = Module (new GenVMECmdWide(tensorType, debug))
 
