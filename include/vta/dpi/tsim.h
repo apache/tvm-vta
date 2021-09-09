@@ -22,6 +22,7 @@
 
 #include <tvm/runtime/c_runtime_api.h>
 #include <stdint.h>
+#include <svdpi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,14 +76,19 @@ typedef void (*VTAHostDPIFunc)(
  */
 typedef void (*VTAMemDPIFunc)(
     VTAContextHandle self,
-    dpi8_t req_valid,
-    dpi8_t req_opcode,
-    dpi8_t req_len,
-    dpi64_t req_addr,
+    dpi8_t rd_req_valid,
+    dpi8_t rd_req_len,
+    dpi8_t rd_req_id,
+    dpi64_t rd_req_addr,
+    dpi8_t wr_req_valid,
+    dpi8_t wr_req_len,
+    dpi64_t wr_req_addr,
     dpi8_t wr_valid,
-    dpi64_t wr_value,
+    const svOpenArrayHandle wr_value,
+    dpi64_t wr_strb,
     dpi8_t* rd_valid,
-    dpi64_t* rd_value,
+    dpi8_t* rd_id,
+    const svOpenArrayHandle rd_value,
     dpi8_t rd_ready);
 
 /*! \brief The type of VTADPIInit function pointer */

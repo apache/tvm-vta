@@ -20,10 +20,12 @@
 package vta.core
 
 import scala.math.pow
+import scala.math.sqrt
 
 import chisel3._
 import chisel3.util._
 import vta.util.config._
+import vta.util._
 import vta.shell._
 
 /** Compute.
@@ -55,15 +57,16 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
   val s = Seq.tabulate(2)(_ =>
     Module(new Semaphore(counterBits = 8, counterInitValue = 0)))
 
-  val loadUop = Module(new LoadUop)
+
+  val loadUop = Module(new LoadUopTop)
   val tensorAcc = Module(new TensorLoad(tensorType = "acc"))
   val tensorGemm = Module(new TensorGemm)
   val tensorAlu = Module(new TensorAlu)
 
-  // try to use the acc closest to top IO
+  //try to use the acc closest to top IO
   val topAccGrpIdx = tensorGemm.io.acc.closestIOGrpIdx
 
-  val inst_q = Module(new Queue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
+  val inst_q = Module(new SyncQueue(UInt(INST_BITS.W), p(CoreKey).instQueueEntries))
 
   // decode
   val dec = Module(new ComputeDecode)
@@ -205,7 +208,7 @@ class Compute(debug: Boolean = false)(implicit val p: Parameters) extends Module
     RegNext(dec.io.isGemm, init = false.B), tensorGemm.io.out.wr(0).valid, tensorAlu.io.out.wr(0).valid)
   io.out.wr(0).bits.idx := Mux(
     RegNext(dec.io.isGemm, init = false.B), tensorGemm.io.out.wr(0).bits.idx, tensorAlu.io.out.wr(0).bits.idx)
-  // put mux/Reg into every gemm group to build pipe (for Mux select) tree over distance
+  //put mux/Reg into every gemm group to build pipe (for Mux select) tree over distance
   val chunkWidth = io.out.wr(0).bits.data.getWidth / tensorGemm.io.acc.splitWidth
   val outDataBits = Wire(Vec(tensorGemm.io.acc.splitWidth, UInt(chunkWidth.W)))
   io.out.wr(0).bits.data := outDataBits.asTypeOf(io.out.wr(0).bits.data)

@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+#include <assert.h>
 
 #include <tvm/runtime/module.h>
 #include <tvm/runtime/packed_func.h>
@@ -37,6 +38,10 @@
 
 #include "../vmem/virtual_memory.h"
 
+// Include verilator array access functions code
+#include "verilated.cpp"
+#include "verilated_dpi.cpp"
+
 namespace vta {
 namespace dpi {
 
@@ -56,7 +61,8 @@ struct HostResponse {
 
 struct MemResponse {
   uint8_t valid;
-  uint64_t value;
+  uint8_t id;
+  uint64_t* value;
 };
 
 template <typename T>
@@ -118,16 +124,29 @@ class HostDevice {
 
 class MemDevice {
  public:
-  void SetRequest(uint8_t opcode, uint64_t addr, uint32_t len);
-  MemResponse ReadData(uint8_t ready);
-  void WriteData(uint64_t value);
+  void  SetRequest(
+    uint8_t  rd_req_valid,
+    uint64_t rd_req_addr,
+    uint32_t rd_req_len,
+    uint32_t rd_req_id,
+    uint64_t wr_req_addr,
+    uint32_t wr_req_len,
+    uint8_t  wr_req_valid);
+  MemResponse ReadData(uint8_t ready, int blkNb);
+  void WriteData(svOpenArrayHandle value, uint64_t wr_strb);
 
  private:
   uint64_t* raddr_{0};
   uint64_t* waddr_{0};
   uint32_t rlen_{0};
+  uint32_t rid_{0};
   uint32_t wlen_{0};
   std::mutex mutex_;
+  uint64_t dead_beef_ [8] = {0xdeadbeefdeadbeef,0xdeadbeefdeadbeef,
+                              0xdeadbeefdeadbeef,0xdeadbeefdeadbeef,
+                              0xdeadbeefdeadbeef,0xdeadbeefdeadbeef,
+                              0xdeadbeefdeadbeef,0xdeadbeefdeadbeef };
+  
 };
 
 void SimDevice::Wait() {
@@ -180,36 +199,74 @@ void HostDevice::WaitPopResponse(HostResponse* r) {
   resp_.WaitPop(r);
 }
 
-void MemDevice::SetRequest(uint8_t opcode, uint64_t addr, uint32_t len) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  void * vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(addr);
+void MemDevice::SetRequest(
+  uint8_t  rd_req_valid,
+  uint64_t rd_req_addr,
+  uint32_t rd_req_len,
+  uint32_t rd_req_id,
+  uint64_t wr_req_addr,
+  uint32_t wr_req_len,
+  uint8_t  wr_req_valid) {
 
-  if (opcode == 1) {
-    wlen_ = len + 1;
-    waddr_ = reinterpret_cast<uint64_t*>(vaddr);
-  } else {
-    rlen_ = len + 1;
-    raddr_ = reinterpret_cast<uint64_t*>(vaddr);
+  std::lock_guard<std::mutex> lock(mutex_);
+  if(rd_req_addr !=0 ){
+    void * rd_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(rd_req_addr);
+    if(rd_req_valid == 1) {
+      rlen_ = rd_req_len + 1;
+      rid_  = rd_req_id;
+      raddr_ = reinterpret_cast<uint64_t*>(rd_vaddr);
+    }
+  }
+
+  if(wr_req_addr != 0){
+    void * wr_vaddr = vta::vmem::VirtualMemoryManager::Global()->GetAddr(wr_req_addr);
+    if (wr_req_valid == 1) {
+      wlen_ = wr_req_len + 1;
+      waddr_ = reinterpret_cast<uint64_t*>(wr_vaddr);
+    } 
   }
 }
 
-MemResponse MemDevice::ReadData(uint8_t ready) {
+MemResponse MemDevice::ReadData(uint8_t ready, int blkNb) {
   std::lock_guard<std::mutex> lock(mutex_);
   MemResponse r;
   r.valid = rlen_ > 0;
-  r.value = rlen_ > 0 ? *raddr_ : 0xdeadbeefdeadbeef;
+  r.value = rlen_ > 0 ? raddr_ : dead_beef_;
+  r.id    = rid_;
   if (ready == 1 && rlen_ > 0) {
-    raddr_++;
+    raddr_ += blkNb;
     rlen_ -= 1;
   }
   return r;
 }
 
-void MemDevice::WriteData(uint64_t value) {
+void MemDevice::WriteData(svOpenArrayHandle value, uint64_t wr_strb) {
+
+  int lftIdx = svLeft(value, 1);
+  int rgtIdx = svRight(value, 1);
+  int blkNb  = lftIdx - rgtIdx + 1;
+  assert(lftIdx >= 0);
+  assert(rgtIdx >= 0);
+  assert(lftIdx >= rgtIdx);
+  assert(blkNb > 0);
+  // supported up to 64bit strb
+  assert(blkNb <= 8);
+
   std::lock_guard<std::mutex> lock(mutex_);
+  int strbMask = 0xff;
   if (wlen_ > 0) {
-    *waddr_ = value;
-    waddr_++;
+    for (int idx = 0 ; idx < blkNb; ++idx) {
+      int strbFlags = (wr_strb >> (idx * 8)) & strbMask;
+      if (!(strbFlags == 0 || strbFlags == strbMask)) {
+        LOG(FATAL) << "Unexpected strb data " << (void*)wr_strb;
+      }
+      if (strbFlags != 0) {
+        uint64_t* elemPtr = (uint64_t*)svGetArrElemPtr1(value, rgtIdx + idx);
+        assert(elemPtr != NULL);
+        waddr_[idx] = (*elemPtr);
+      }
+    }
+    waddr_ += blkNb;
     wlen_ -= 1;
   }
 }
@@ -229,9 +286,9 @@ class DPIModule final : public DPIModuleNode {
       const ObjectPtr<Object>& sptr_to_self) final {
     if (name == "WriteReg") {
       return TypedPackedFunc<void(int, int)>(
-          [this](int addr, int value){
-            this->WriteReg(addr, value);
-          });
+        [this](int addr, int value){
+           this->WriteReg(addr, value);
+        });
     } else {
       LOG(FATAL) << "Member " << name << "does not exists";
       return nullptr;
@@ -241,7 +298,7 @@ class DPIModule final : public DPIModuleNode {
   void Init(const std::string& name) {
     Load(name);
     VTADPIInitFunc finit =  reinterpret_cast<VTADPIInitFunc>(
-        GetSymbol("VTADPIInit"));
+      GetSymbol("VTADPIInit"));
     CHECK(finit != nullptr);
     finit(this, VTASimDPI, VTAHostDPI, VTAMemDPI);
     ftsim_ = reinterpret_cast<VTADPISimFunc>(GetSymbol("VTADPISim"));
@@ -314,24 +371,65 @@ class DPIModule final : public DPIModuleNode {
   }
 
   void MemDPI(
-      dpi8_t req_valid,
-      dpi8_t req_opcode,
-      dpi8_t req_len,
-      dpi64_t req_addr,
+      dpi8_t rd_req_valid,
+      dpi8_t rd_req_len,
+      dpi8_t rd_req_id,
+      dpi64_t rd_req_addr,
+      dpi8_t wr_req_valid,
+      dpi8_t wr_req_len,
+      dpi64_t wr_req_addr,
       dpi8_t wr_valid,
-      dpi64_t wr_value,
+      const svOpenArrayHandle wr_value,
+      dpi64_t wr_strb,
       dpi8_t* rd_valid,
-      dpi64_t* rd_value,
+      dpi8_t*  rd_id,
+      const svOpenArrayHandle rd_value,
       dpi8_t rd_ready) {
-    MemResponse r = mem_device_.ReadData(rd_ready);
-    *rd_valid = r.valid;
-    *rd_value = r.value;
+    
+    // check data pointers
+    // data is expected to come in 64bit chunks
+    // up to 512 bits total
+    // more bits require wider strb data
+    assert(wr_value != NULL);
+    assert(svDimensions(wr_value) == 1);
+    assert(svSize(wr_value, 1) <= 8);
+    assert(svSize(wr_value, 0) == 64);
+    assert(rd_value != NULL);
+    assert(svDimensions(rd_value) == 1);
+    assert(svSize(rd_value, 1) <= 8);
+    assert(svSize(rd_value, 0) == 64);
+    
+    int lftIdx = svLeft(rd_value, 1);
+    int rgtIdx = svRight(rd_value, 1);
+    int blkNb  = lftIdx - rgtIdx + 1;
+    assert(lftIdx >= 0);
+    assert(rgtIdx >= 0);
+    assert(lftIdx >= rgtIdx);
+    assert(blkNb > 0);
+
     if (wr_valid) {
-      mem_device_.WriteData(wr_value);
+      mem_device_.WriteData(wr_value, wr_strb);
     }
-    if (req_valid) {
-      mem_device_.SetRequest(req_opcode, req_addr, req_len);
+    if (rd_req_valid || wr_req_valid) {
+     mem_device_.SetRequest(
+       rd_req_valid,
+       rd_req_addr,
+       rd_req_len,
+       rd_req_id,
+       wr_req_addr,
+       wr_req_len,
+       wr_req_valid);
     }
+
+    
+    MemResponse r = mem_device_.ReadData(rd_ready, blkNb);
+    *rd_valid = r.valid;
+    for (int idx = 0; idx < blkNb; idx ++) {
+      uint64_t* dataPtr = (uint64_t*)svGetArrElemPtr1(rd_value, rgtIdx + idx);
+      assert(dataPtr != NULL);
+      (*dataPtr) = r.value[idx];
+    }
+    *rd_id     = r.id;
   }
 
   static void VTASimDPI(
@@ -352,25 +450,31 @@ class DPIModule final : public DPIModuleNode {
       dpi8_t resp_valid,
       dpi32_t resp_value) {
     static_cast<DPIModule*>(self)->HostDPI(
-        req_valid, req_opcode, req_addr,
-        req_value, req_deq, resp_valid, resp_value);
+      req_valid, req_opcode, req_addr,
+      req_value, req_deq, resp_valid, resp_value);
   }
 
   static void VTAMemDPI(
     VTAContextHandle self,
-    dpi8_t req_valid,
-    dpi8_t req_opcode,
-    dpi8_t req_len,
-    dpi64_t req_addr,
+    dpi8_t rd_req_valid,
+    dpi8_t rd_req_len,
+    dpi8_t rd_req_id,
+    dpi64_t rd_req_addr,
+    dpi8_t wr_req_valid,
+    dpi8_t wr_req_len,
+    dpi64_t wr_req_addr,
     dpi8_t wr_valid,
-    dpi64_t wr_value,
+    const svOpenArrayHandle wr_value,
+    dpi64_t wr_strb,
     dpi8_t* rd_valid,
-    dpi64_t* rd_value,
+    dpi8_t*   rd_id,    
+    const svOpenArrayHandle rd_value,
     dpi8_t rd_ready) {
     static_cast<DPIModule*>(self)->MemDPI(
-        req_valid, req_opcode, req_len,
-        req_addr, wr_valid, wr_value,
-        rd_valid, rd_value, rd_ready);
+      rd_req_valid, rd_req_len, rd_req_id,
+      rd_req_addr, wr_req_valid, wr_req_len, wr_req_addr,
+      wr_valid, wr_value, wr_strb,
+      rd_valid, rd_id, rd_value, rd_ready);
   }
 
  private:

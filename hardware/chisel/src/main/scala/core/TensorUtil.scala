@@ -48,6 +48,7 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
     else if (tensorType == "fetch") {
       // make fetch a 64 bit data to be able to read
       // 64 bit aligned address. It works for wide cacheline
+      // fetch tensorload is not used for narrow data load
       require(p(ShellKey).memParams.dataBits >= INST_BITS,
         "-F- Cannot make fetch tensor narrower than data pulse. TODO: narrow fetch with tensors")
       (1, 1, 64)
@@ -79,9 +80,66 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
     else
       p(CoreKey).outMemDepth
 
+  // the number of cycles Instruction write is delayed
+  // Idle state writes are not delayed
+  // inserted regs are used to physically deliver signal to memories
+  val writePipeLatency =
+    if (tensorType == "inp") {
+      0 // VME data load cmd write (per group)
+    } else if (tensorType == "wgt") {
+      0 // VME data load cmd write (per group)
+    } else if (tensorType == "acc") {
+      0 // VME data load cmd write (per group)
+    } else if (tensorType == "fetch") {
+      0
+    } else if (tensorType == "uop") {
+      0
+    } else if (tensorType == "out") {
+      0 // direct write from core
+    } else {
+      0
+    }
+
+  // the number of cycles Idle state data read is delayed
+  // inserted regs are used to physically deliver signal to memories
+  val readTensorLatency =
+    if (tensorType == "inp") {
+      0 // GEMM inp data read (per memsplit)
+    } else if (tensorType == "wgt") {
+      0
+    } else if (tensorType == "acc") {
+      0
+    } else if (tensorType == "fetch") {
+      0
+    } else if (tensorType == "uop") {
+      0
+    } else if (tensorType == "out") {
+      0
+    } else {
+      0
+    }
+  // the number of cycles vme data signals are delayed
+  // This is a global delay of VME data signals. One for all groups
+  val readVMEDataLatency =
+    if (tensorType == "inp") {
+      0 // VME data signals delay
+    } else if (tensorType == "wgt") {
+      0 // VME data signals delay
+    } else if (tensorType == "acc") {
+      0  // VME data signals delay
+    } else if (tensorType == "fetch") {
+      0
+    } else if (tensorType == "uop") {
+      0 // VME data signals delay
+    } else if (tensorType == "out") {
+      0
+    } else {
+      0
+    }
+
+
   // acc/wgt parts are grouped to form
   // a physically compact compute entity
-
   val (splitLength, splitWidth) =
     if (tensorType == "inp") {
       (1, 1)
@@ -94,7 +152,6 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
       // continous data and may be placed into different memory
       // modules. But the whole idea of a group to localize
       // piece of wgt to piece of acc data transformation
-      //
       (1, p(CoreKey).blockOutFactor)
     } else if (tensorType == "fetch") {
       (1, 1)
@@ -124,6 +181,15 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
       0
     } else {
       0
+    }
+
+  // this split doesnt change tensorLoad interface, but
+  // allows pipe VME write control signals per group of memory modules
+  val splitMemsFactor =
+    if (tensorType == "inp") {
+      1
+    } else {
+      1
     }
 
   val memAddrBits = log2Ceil(memDepth)
@@ -177,7 +243,8 @@ class TensorParams(tensorType: String = "none")(implicit p: Parameters) extends 
   }
   def paramsStr () = {
     s" ${tensorType} ${tensorSizeBits*memDepth/8} Byte. length:${tensorLength} width:${tensorWidth}" +
-    s" data bits:${tensorElemBits} mem depth:${memDepth} groups split length:${splitLength}"
+    s" data bits:${tensorElemBits} mem depth:${memDepth} groups split length:${splitLength}" +
+    s" split width:${splitWidth} pipe write:${writePipeLatency}"
   }
 }
 

@@ -17,9 +17,11 @@
  * under the License.
  */
 
+#include <cassert>
 #include <chrono>
 #include <thread>
 #include <vta/dpi/tsim.h>
+#include <verilated.h>
 
 #if VM_TRACE
 #ifdef VM_TRACE_FST
@@ -58,19 +60,25 @@ void VTAHostDPI(dpi8_t* req_valid,
                resp_valid, resp_value);
 }
 
-void VTAMemDPI(dpi8_t req_valid,
-               dpi8_t req_opcode,
-               dpi8_t req_len,
-               dpi64_t req_addr,
+void VTAMemDPI(dpi8_t rd_req_valid,
+               dpi8_t rd_req_len,
+               dpi8_t rd_req_id,
+               dpi64_t rd_req_addr,
+               dpi8_t wr_req_valid,
+               dpi8_t wr_req_len,
+               dpi64_t wr_req_addr,
                dpi8_t wr_valid,
-               dpi64_t wr_value,
+               const svOpenArrayHandle wr_value,
+               dpi64_t wr_strb,
                dpi8_t* rd_valid,
-               dpi64_t* rd_value,
+               dpi8_t* rd_id,
+               const svOpenArrayHandle  rd_value,
                dpi8_t rd_ready) {
   assert(_mem_dpi != nullptr);
-  (*_mem_dpi)(_ctx, req_valid, req_opcode, req_len,
-              req_addr, wr_valid, wr_value,
-              rd_valid, rd_value, rd_ready);
+  (*_mem_dpi)(_ctx, rd_req_valid, rd_req_len, rd_req_id,
+              rd_req_addr, wr_req_valid, wr_req_len, wr_req_addr, 
+              wr_valid, wr_value, wr_strb,
+              rd_valid, rd_id,rd_value, rd_ready);
 
 }
 
