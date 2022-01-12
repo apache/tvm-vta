@@ -68,7 +68,7 @@ class VTAMem(implicit p: Parameters) extends Module {
  * the simulation thread when it is asserted and resume it when it is
  * de-asserted.
  */
-class VTASim(implicit p: Parameters) extends MultiIOModule {
+class VTASim(implicit p: Parameters) extends Module {
   val sim_wait = IO(Output(Bool()))
   val sim = Module(new VTASimDPI)
   sim.io.reset := reset
@@ -82,7 +82,7 @@ class VTASim(implicit p: Parameters) extends MultiIOModule {
  * are connected to the VTAShell. An extra clock, sim_clock, is used to eval
  * the VTASim DPI function when the main simulation clock is on halt state.
  */
-class SimShell(implicit p: Parameters) extends MultiIOModule {
+class SimShell(implicit p: Parameters) extends Module {
   val mem = IO(new AXIClient(p(ShellKey).memParams))
   val host = IO(new AXILiteMaster(p(ShellKey).hostParams))
   val sim_clock = IO(Input(Clock()))

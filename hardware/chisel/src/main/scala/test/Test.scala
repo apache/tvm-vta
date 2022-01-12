@@ -24,7 +24,7 @@ import vta.util.config._
 import vta.shell._
 
 /** Test. This generates a testbench file for simulation */
-class Test(implicit p: Parameters) extends MultiIOModule {
+class Test(implicit p: Parameters) extends Module {
   val sim_clock = IO(Input(Clock()))
   val sim_wait = IO(Output(Bool()))
   val sim_shell = Module(new SimShell)

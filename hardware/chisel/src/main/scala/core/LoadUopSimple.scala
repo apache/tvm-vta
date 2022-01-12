@@ -134,7 +134,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
 
   when(state =/= sReadData) {
     xcnt := 0.U
-  }.elsewhen(io.vme_rd.data.fire()) {
+  }.elsewhen(io.vme_rd.data.fire) {
     xcnt := xcnt + 1.U
   }
 
@@ -155,7 +155,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
         waddr(1) := so
       }
     }
-  }.elsewhen(io.vme_rd.data.fire()) {
+  }.elsewhen(io.vme_rd.data.fire) {
     for (i <- 0 until uopsPerMemXfer) {
       waddr(i) := waddr(i) + 1.U
     }
@@ -169,7 +169,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
     wmask(i) := true.B
   }
 
-  when (io.vme_rd.data.fire()) {
+  when (io.vme_rd.data.fire) {
     when (first) {
       first := false.B
 
@@ -201,7 +201,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
     }
   }
 
-  when(io.vme_rd.data.fire()) {
+  when(io.vme_rd.data.fire) {
     for { i <- 0 until mems.size} {
       when (wmask(i)) {
         mems(i).write(waddr(i), wdata(i))
@@ -209,7 +209,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
     }
   }
 
-  io.done := io.vme_rd.data.fire() & last
+  io.done := io.vme_rd.data.fire & last
 
   // ----------- read-from-sram -------------
 
@@ -243,7 +243,7 @@ class LoadUopSimple(debug: Boolean = false)(implicit val p: Parameters) extends 
 
   // debug
   if (debug) {
-    when(io.vme_rd.cmd.fire()) {
+    when(io.vme_rd.cmd.fire) {
       printf("[LoadUop] cmd addr:%x len:%x rem:%x\n", raddr, xlen, xrem)
     }
   }

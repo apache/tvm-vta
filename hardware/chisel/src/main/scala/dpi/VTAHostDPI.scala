@@ -153,10 +153,10 @@ class VTAHostDPIToAXI(debug: Boolean = false)(implicit p: Parameters) extends Mo
     when(state === sReadAddress && io.axi.ar.ready) {
       printf("[VTAHostDPIToAXI] [AR] addr:%x\n", addr)
     }
-    when(io.axi.r.fire()) {
+    when(io.axi.r.fire) {
       printf("[VTAHostDPIToAXI] [R] value:%x\n", io.axi.r.bits.data)
     }
-    when(io.axi.w.fire()) {
+    when(io.axi.w.fire) {
       printf("[VTAHostDPIToAXI] [W] value:%x\n", io.axi.w.bits.data)
     }
   }

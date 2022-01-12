@@ -185,7 +185,7 @@ class Fetch64Bit(debug: Boolean = false)(implicit p: Parameters) extends Module 
       printf("[Fetch] Launch\n")
     }
     // instruction
-    when(inst_q.io.deq.fire()) {
+    when(inst_q.io.deq.fire) {
       when(dec.io.isLoad) {
         printf("[Fetch] [instruction decode] [L] %x\n", inst_q.io.deq.bits)
       }

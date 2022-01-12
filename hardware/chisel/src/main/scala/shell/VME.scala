@@ -310,7 +310,7 @@ class VME(implicit p: Parameters) extends Module {
   val wstate = RegInit(sWriteIdle)
   val wr_cnt = RegInit(0.U(lenBits.W))
   io.vme.wr(0).cmd.ready := wstate === sWriteIdle
-  io.vme.wr(0).ack := io.mem.b.fire()
+  io.vme.wr(0).ack := io.mem.b.fire
   io.vme.wr(0).data.ready := wstate === sWriteData & io.mem.w.ready
   io.mem.aw.valid := wstate === sWriteAddr
   io.mem.aw.bits.addr := wr_addr
@@ -322,14 +322,14 @@ class VME(implicit p: Parameters) extends Module {
   io.mem.w.bits.last := wr_cnt === wr_len
   io.mem.w.bits.id   := p(ShellKey).memParams.idConst.U // no support for multiple writes
   io.mem.b.ready := wstate === sWriteResp
-  when(io.vme.wr(0).cmd.fire()) {
+  when(io.vme.wr(0).cmd.fire) {
     wr_len := io.vme.wr(0).cmd.bits.len
     wr_addr := io.vme.wr(0).cmd.bits.addr
   }
   when(wstate === sWriteIdle) {
     wr_cnt := 0.U
   }
-  .elsewhen(io.mem.w.fire()){
+  .elsewhen(io.mem.w.fire){
     wr_cnt := wr_cnt + 1.U
   }
   switch(wstate){

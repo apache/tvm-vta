@@ -105,18 +105,18 @@ class SyncQueue1PortMemImpl[T <: Data](
 
   io.deq <> buffer.io.deq
   doubleQueue.io.enq.bits := io.enq.bits
-  doubleQueue.io.enq.valid := io.enq.fire() && (!buffer.io.enq.ready || doubleQueueHasValues)
+  doubleQueue.io.enq.valid := io.enq.fire && (!buffer.io.enq.ready || doubleQueueHasValues)
   doubleQueue.io.deq.ready := buffer.io.enq.ready
 
   val count = Wire(UInt(log2Up(entries + 1).W))
   val countNext = RegEnable(
     next = count,
     init = 0.U,
-    enable = io.enq.fire() || io.deq.fire())
-  when (io.enq.fire() && !io.deq.fire()) {
+    enable = io.enq.fire || io.deq.fire)
+  when (io.enq.fire && !io.deq.fire) {
     assert(countNext < entries.U)
     count := countNext + 1.U
-  }.elsewhen (!io.enq.fire() && io.deq.fire()) {
+  }.elsewhen (!io.enq.fire && io.deq.fire) {
     assert(countNext > 0.U)
     count := countNext - 1.U
   }.otherwise {
@@ -180,18 +180,18 @@ class SyncQueue2PortMemImpl[T <: Data](
 
   io.deq <> buffer.io.deq
   memoryQueue.io.enq.bits := io.enq.bits
-  memoryQueue.io.enq.valid := io.enq.fire() && (!buffer.io.enq.ready || memoryQueueHasValues)
+  memoryQueue.io.enq.valid := io.enq.fire && (!buffer.io.enq.ready || memoryQueueHasValues)
   memoryQueue.io.deq.ready := buffer.io.enq.ready
 
   val count = Wire(UInt(log2Up(entries + 1).W))
   val countNext = RegEnable(
     next = count,
     init = 0.U,
-    enable = io.enq.fire() || io.deq.fire())
-  when (io.enq.fire() && !io.deq.fire()) {
+    enable = io.enq.fire || io.deq.fire)
+  when (io.enq.fire && !io.deq.fire) {
     assert(countNext < entries.U)
     count := countNext + 1.U
-  }.elsewhen (!io.enq.fire() && io.deq.fire()) {
+  }.elsewhen (!io.enq.fire && io.deq.fire) {
     assert(countNext > 0.U)
     count := countNext - 1.U
   }.otherwise {
@@ -226,24 +226,24 @@ class DoubleQueue[T <: Data](
   enqRR := RegEnable(
     next = ~enqRR,
     init = 1.U,
-    enable = io.enq.fire())
+    enable = io.enq.fire)
   val deqRR = Wire(Bool())
   deqRR := RegEnable(
     next = ~deqRR,
     init = 1.U,
-    enable = io.deq.fire())
+    enable = io.deq.fire)
 
 
-  val do_enq0 = WireInit(io.enq.fire() && enqRR)
-  val do_enq1 = WireInit(io.enq.fire() && ~enqRR)
-  val deq0 = WireInit(io.deq.fire() && deqRR)
-  val deq1 = WireInit(io.deq.fire() && ~deqRR)
+  val do_enq0 = WireInit(io.enq.fire && enqRR)
+  val do_enq1 = WireInit(io.enq.fire && ~enqRR)
+  val deq0 = WireInit(io.deq.fire && deqRR)
+  val deq1 = WireInit(io.deq.fire && ~deqRR)
   val do_deq0_next = RegNext(deq0 && do_enq0)
   val do_deq1_next = RegNext(deq1 && do_enq1)
   val do_deq0 = (deq0 && ~do_enq0) || do_deq0_next
   val do_deq1 = (deq1 && ~do_enq1) || do_deq1_next
 
-  val do_deq = WireInit(io.deq.fire())
+  val do_deq = WireInit(io.deq.fire)
   val full  = !queue0.io.enq.ready && !queue1.io.enq.ready
   val empty = !queue0.io.deq.valid && !queue1.io.deq.valid
 
@@ -301,8 +301,8 @@ class TwoCycleQueue[T <: Data](
   val empty = ptr_match && !maybe_full
   val full = ptr_match && maybe_full
 
-  val do_enq = WireInit(io.enq.fire())
-  val do_deq = WireInit(io.deq.fire())
+  val do_enq = WireInit(io.enq.fire)
+  val do_deq = WireInit(io.deq.fire)
 
   // check protocol
   val enq_next = RegNext(do_enq)
@@ -384,8 +384,8 @@ class OneCycleQueue[T <: Data](
   val empty = ptr_match && !maybe_full
   val full = ptr_match && maybe_full
 
-  val do_enq = WireInit(io.enq.fire())
-  val do_deq = WireInit(io.deq.fire())
+  val do_enq = WireInit(io.enq.fire)
+  val do_deq = WireInit(io.deq.fire)
 
 
   when(do_deq) {
