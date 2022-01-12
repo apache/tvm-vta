@@ -20,7 +20,7 @@
 package unittest
 
 import chisel3.util._
-import chisel3.iotesters.PeekPokeTester
+import chiseltest.iotesters._
 import scala.util.Random
 import unittest.util._
 import vta.core._

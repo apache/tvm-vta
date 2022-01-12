@@ -20,27 +20,21 @@
 package unittest
 
 import chisel3._
-import chisel3.util._
 import vta.util.config._
-import chisel3.iotesters._
-import vta.{DefaultPynqConfig}
+import chiseltest._
+import chiseltest.iotesters._
+import org.scalatest.flatspec.AnyFlatSpec
+import vta.DefaultPynqConfig
 
-import org.scalatest.{Matchers, FlatSpec}
-
-class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters]
-  (tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P) extends FlatSpec with Matchers {
+class GenericTest[T <: Module, P <: PeekPokeTester[T], C <: Parameters](
+    tag : String, dutFactory : (Parameters) => T, testerFactory : (T) => P
+  ) extends AnyFlatSpec with ChiselScalatestTester {
 
   implicit val p: Parameters = new DefaultPynqConfig
-
-  val arguments = Array(
-    "--backend-name", "treadle",
-    // "--backend-name", "vcs",
-    // "--is-verbose",
-    "--test-seed", "0"
-    )
+  val defaultOpts = Seq(TreadleBackendAnnotation)
 
   behavior of tag
   it should "not have expect violations" in {
-    chisel3.iotesters.Driver.execute(arguments, ()=> dutFactory(p))(testerFactory) should be (true)
+    test(dutFactory(p)).withAnnotations(defaultOpts).runPeekPoke(testerFactory)
   }
 }
