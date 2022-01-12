@@ -74,7 +74,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   val xsize = io.ins_count << log2Ceil(elemsInInstr)
   // max size of transfer is limited by a buffer size
   val xmax = (((1 << mp.lenBits) << log2Ceil(tp.clSizeRatio)).min(tp.memDepth)).U
-  val elemNb = Reg(xsize.cloneType)
+  val elemNb = Reg(xsize)
 
   val sIdle :: sRead :: sDrain :: Nil = Enum(3)
   val state = RegInit(sIdle)

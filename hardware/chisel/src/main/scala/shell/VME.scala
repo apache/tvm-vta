@@ -62,8 +62,6 @@ class clientTag(implicit p:Parameters) extends Bundle{
   val client_id  = UInt(clientBits.W)
   val client_tag = UInt(p(ShellKey).vmeParams.clientTagBitWidth.W)
   val client_mask = UInt(RequestQueueMaskBits.W)
-  override def cloneType =
-  new clientTag().asInstanceOf[this.type]
 }
 
 class VMECmd(implicit p: Parameters) extends VMEBase {
@@ -84,8 +82,6 @@ class VMEData(implicit p: Parameters) extends VMEBase {
   val data = UInt(dataBits.W)
   val tag = UInt(p(ShellKey).vmeParams.clientTagBitWidth.W)
   val last = Bool()
-  override def cloneType =
-  new VMEData().asInstanceOf[this.type]
 }
 
 /** VMEReadMaster.
@@ -97,8 +93,6 @@ class VMEReadMaster(implicit p: Parameters) extends Bundle {
   val dataBits = p(ShellKey).memParams.dataBits
   val cmd = Decoupled(new VMECmd)
   val data = Flipped(Decoupled(new VMEData))
-  override def cloneType =
-  new VMEReadMaster().asInstanceOf[this.type]
 }
 
 /** VMEReadClient.
@@ -110,8 +104,6 @@ class VMEReadClient(implicit p: Parameters) extends Bundle {
   val dataBits = p(ShellKey).memParams.dataBits
   val cmd = Flipped(Decoupled(new VMECmd))
   val data = Decoupled(new VMEData)
-  override def cloneType =
-  new VMEReadClient().asInstanceOf[this.type]
 }
 
 /** VMEWriteData.
@@ -125,9 +117,6 @@ class VMEWriteData(implicit p: Parameters) extends Bundle {
 
   val data = UInt(dataBits.W)
   val strb = UInt(strbBits.W)
-
-  override def cloneType =
-  new VMEWriteData().asInstanceOf[this.type]
 }
 
 /** VMEWriteMaster.
@@ -140,8 +129,6 @@ class VMEWriteMaster(implicit p: Parameters) extends Bundle {
   val cmd = Decoupled(new VMECmd)
   val data = Decoupled(new VMEWriteData)
   val ack = Input(Bool())
-  override def cloneType =
-  new VMEWriteMaster().asInstanceOf[this.type]
 }
 
 /** VMEWriteClient.
@@ -154,8 +141,6 @@ class VMEWriteClient(implicit p: Parameters) extends Bundle {
   val cmd = Flipped(Decoupled(new VMECmd))
   val data = Flipped(Decoupled(new VMEWriteData))
   val ack = Output(Bool())
-  override def cloneType =
-  new VMEWriteClient().asInstanceOf[this.type]
 }
 
 /** VMEMaster.
@@ -220,7 +205,7 @@ class VME(implicit p: Parameters) extends Module {
   }.otherwise{
   availableEntriesNext:= availableEntries
   }
-  when(reset.toBool){
+  when(reset.asBool){
   availableEntries := VecInit(Seq.fill(RequestQueueDepth)(true.B)).asUInt
   updateEntry := 0.U
   }.otherwise{

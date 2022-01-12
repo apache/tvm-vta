@@ -325,7 +325,7 @@ class TwoCycleQueue[T <: Data](
     enq_ptr.inc()
   }
 
-  val memAddr = Wire(enq_ptr.value.cloneType)
+  val memAddr = Wire(chiselTypeOf(enq_ptr.value))
   memAddr := enq_ptr.value
   when(!do_enq) {
     when(firstRead) {// output the 1st written data
@@ -405,7 +405,7 @@ class OneCycleQueue[T <: Data](
   io.enq.ready := !full
   assert(!firstRead || !do_deq, "-F- Cannot have deq with first read as queue output is not valid yet")
 
-  val rdAddr = Wire(enq_ptr.value.cloneType)
+  val rdAddr = Wire(chiselTypeOf(enq_ptr.value))
   when(firstRead) {// output the 1st written data
     rdAddr := deq_ptr.value
   }.elsewhen (do_deq) {
@@ -446,11 +446,10 @@ class OneCycleQueue[T <: Data](
 class MemIO[T <: Data](gen: T, entries: Int) extends Bundle
 {
   val wr_en   = Input(Bool())
-  val wr_data = Input(gen.cloneType)
+  val wr_data = Input(gen)
   val ch_en   = Input(Bool())
-  val rd_data = Output(gen.cloneType)
+  val rd_data = Output(gen)
   val addr    = Input(UInt(16.W)) // i dont care
-  override def cloneType: this.type = new MemIO(gen, entries).asInstanceOf[this.type]
 }
 class OnePortMem[T <: Data](
     gen: T,
@@ -478,11 +477,10 @@ class MemIO2P[T <: Data](gen: T, entries: Int) extends Bundle
 {
   val wr_en   = Input(Bool())
   val wr_addr = Input(UInt(16.W)) // i dont care
-  val wr_data = Input(gen.cloneType)
+  val wr_data = Input(gen)
   val rd_en   = Input(Bool())
   val rd_addr = Input(UInt(16.W)) // i dont care
-  val rd_data = Output(gen.cloneType)
-  override def cloneType: this.type = new MemIO2P(gen, entries).asInstanceOf[this.type]
+  val rd_data = Output(gen)
 }
 
 class TwoPortMem[T <: Data](
