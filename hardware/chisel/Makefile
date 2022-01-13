@@ -51,7 +51,6 @@ USE_TRACE_FST = 0
 USE_TRACE_DETAILED = 0
 USE_THREADS = 0
 VTA_LIBNAME = libvta_hw
-UNITTEST_NAME = all
 CXX = g++
 # A debug build with DEBUG = 1 is useful to trace the simulation with a
 # debugger.
@@ -194,7 +193,7 @@ $(chisel_build_dir)/$(TOP_TEST).$(CONFIG).sv:
 	sbt 'runMain vta.$(CONFIG_TEST) --target-dir $(chisel_build_dir) -o $(TOP_TEST).$(CONFIG)'
 
 unittest:
-	sbt 'test:runMain unittest.Launcher $(UNITTEST_NAME)'
+	sbt test
 
 clean:
 	-rm -rf target project/target project/project test_run_dir
