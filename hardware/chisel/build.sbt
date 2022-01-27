@@ -21,21 +21,18 @@ name := "vta"
 version := "0.1.0-SNAPSHOT"
 organization := "edu.washington.cs"
 
-scalaVersion := "2.12.13"
+scalaVersion := "2.12.15"
 scalacOptions ++= Seq(
-  "-Xsource:2.11",
   "-language:reflectiveCalls",
   "-deprecation",
   "-feature",
   "-Xcheckinit",
 )
 
-resolvers += Resolver.sonatypeRepo("snapshots")
-libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.4.3"
-libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.5.3"
+libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.5.0"
+libraryDependencies += "edu.berkeley.cs" %% "chiseltest" % "0.5.0"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.3"
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.10.3"
 
-addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % "3.4.3" cross CrossVersion.full)
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % "3.5.0" cross CrossVersion.full)

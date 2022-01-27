@@ -132,11 +132,11 @@ class TensorLoadWideVME(tensorType: String = "none", debug: Boolean = false)(
   val clInFlight = Reg(UInt(clCntIdxWdth.W))
   when(io.start) {
     clInFlight := 0.U
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && !vmeDataFirePipe) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && !vmeDataFirePipe) {
     clInFlight := clInFlight + readLen
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && vmeDataFirePipe) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && vmeDataFirePipe) {
     clInFlight := clInFlight + readLen - 1.U
-  }.elsewhen(isBusy && !io.vme_rd.cmd.fire() && vmeDataFirePipe) {
+  }.elsewhen(isBusy && !io.vme_rd.cmd.fire && vmeDataFirePipe) {
     assert(clInFlight > 0.U)
     clInFlight := clInFlight - 1.U
   }.otherwise {
@@ -392,7 +392,7 @@ class ReadVMEDataWide(tensorType: String = "none", debug: Boolean = false)(
     init = false.B)
   when(io.start) {
     vmeTagDecodeLastValid :=false.B // reset tag valid
-  }.elsewhen(io.vmeData.fire()) {
+  }.elsewhen(io.vmeData.fire) {
     vmeTagDecodeLastValid := true.B // set tag valid on a new read
   }.otherwise {
     vmeTagDecodeLastValid := vmeTagDecodeLastValidNext // keep value
@@ -411,10 +411,10 @@ class ReadVMEDataWide(tensorType: String = "none", debug: Boolean = false)(
           isLastPulse,
           wrMaskLast,
           ((1 << wmaskWidth) - 1).U)))
-  val wmask = Mux(io.vmeData.fire(), wmaskSel, 0.U)
+  val wmask = Mux(io.vmeData.fire, wmaskSel, 0.U)
   rdDataElemDestIdx := DontCare
   isFirstPulse := false.B
-  when(io.vmeData.fire()) {
+  when(io.vmeData.fire) {
     when (
       !vmeTagDecodeLastValidNext ||
       (vmeTagDecodeLastValidNext &&
@@ -760,6 +760,6 @@ class GenVMECmdWideTL(tensorType: String = "none", debug: Boolean = false)(
   cmdGen.io.xpad_0 := dec.xpad_0
   cmdGen.io.xpad_1 := dec.xpad_1
   cmdGen.io.ypad_0 := dec.ypad_0
-  cmdGen.io.updateState := io.vmeCmd.fire()
+  cmdGen.io.updateState := io.vmeCmd.fire
   cmdGen.io.canSendCmd := true.B
 }

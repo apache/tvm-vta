@@ -62,8 +62,6 @@ class clientTag(implicit p:Parameters) extends Bundle{
   val client_id  = UInt(clientBits.W)
   val client_tag = UInt(p(ShellKey).vmeParams.clientTagBitWidth.W)
   val client_mask = UInt(RequestQueueMaskBits.W)
-  override def cloneType =
-  new clientTag().asInstanceOf[this.type]
 }
 
 class VMECmd(implicit p: Parameters) extends VMEBase {
@@ -84,8 +82,6 @@ class VMEData(implicit p: Parameters) extends VMEBase {
   val data = UInt(dataBits.W)
   val tag = UInt(p(ShellKey).vmeParams.clientTagBitWidth.W)
   val last = Bool()
-  override def cloneType =
-  new VMEData().asInstanceOf[this.type]
 }
 
 /** VMEReadMaster.
@@ -97,8 +93,6 @@ class VMEReadMaster(implicit p: Parameters) extends Bundle {
   val dataBits = p(ShellKey).memParams.dataBits
   val cmd = Decoupled(new VMECmd)
   val data = Flipped(Decoupled(new VMEData))
-  override def cloneType =
-  new VMEReadMaster().asInstanceOf[this.type]
 }
 
 /** VMEReadClient.
@@ -110,8 +104,6 @@ class VMEReadClient(implicit p: Parameters) extends Bundle {
   val dataBits = p(ShellKey).memParams.dataBits
   val cmd = Flipped(Decoupled(new VMECmd))
   val data = Decoupled(new VMEData)
-  override def cloneType =
-  new VMEReadClient().asInstanceOf[this.type]
 }
 
 /** VMEWriteData.
@@ -125,9 +117,6 @@ class VMEWriteData(implicit p: Parameters) extends Bundle {
 
   val data = UInt(dataBits.W)
   val strb = UInt(strbBits.W)
-
-  override def cloneType =
-  new VMEWriteData().asInstanceOf[this.type]
 }
 
 /** VMEWriteMaster.
@@ -140,8 +129,6 @@ class VMEWriteMaster(implicit p: Parameters) extends Bundle {
   val cmd = Decoupled(new VMECmd)
   val data = Decoupled(new VMEWriteData)
   val ack = Input(Bool())
-  override def cloneType =
-  new VMEWriteMaster().asInstanceOf[this.type]
 }
 
 /** VMEWriteClient.
@@ -154,8 +141,6 @@ class VMEWriteClient(implicit p: Parameters) extends Bundle {
   val cmd = Flipped(Decoupled(new VMECmd))
   val data = Flipped(Decoupled(new VMEWriteData))
   val ack = Output(Bool())
-  override def cloneType =
-  new VMEWriteClient().asInstanceOf[this.type]
 }
 
 /** VMEMaster.
@@ -220,7 +205,7 @@ class VME(implicit p: Parameters) extends Module {
   }.otherwise{
   availableEntriesNext:= availableEntries
   }
-  when(reset.toBool){
+  when(reset.asBool){
   availableEntries := VecInit(Seq.fill(RequestQueueDepth)(true.B)).asUInt
   updateEntry := 0.U
   }.otherwise{
@@ -325,7 +310,7 @@ class VME(implicit p: Parameters) extends Module {
   val wstate = RegInit(sWriteIdle)
   val wr_cnt = RegInit(0.U(lenBits.W))
   io.vme.wr(0).cmd.ready := wstate === sWriteIdle
-  io.vme.wr(0).ack := io.mem.b.fire()
+  io.vme.wr(0).ack := io.mem.b.fire
   io.vme.wr(0).data.ready := wstate === sWriteData & io.mem.w.ready
   io.mem.aw.valid := wstate === sWriteAddr
   io.mem.aw.bits.addr := wr_addr
@@ -337,14 +322,14 @@ class VME(implicit p: Parameters) extends Module {
   io.mem.w.bits.last := wr_cnt === wr_len
   io.mem.w.bits.id   := p(ShellKey).memParams.idConst.U // no support for multiple writes
   io.mem.b.ready := wstate === sWriteResp
-  when(io.vme.wr(0).cmd.fire()) {
+  when(io.vme.wr(0).cmd.fire) {
     wr_len := io.vme.wr(0).cmd.bits.len
     wr_addr := io.vme.wr(0).cmd.bits.addr
   }
   when(wstate === sWriteIdle) {
     wr_cnt := 0.U
   }
-  .elsewhen(io.mem.w.fire()){
+  .elsewhen(io.mem.w.fire){
     wr_cnt := wr_cnt + 1.U
   }
   switch(wstate){

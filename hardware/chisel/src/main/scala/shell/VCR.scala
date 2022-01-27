@@ -131,7 +131,7 @@ class VCR(implicit p: Parameters) extends Module {
     }
   }
 
-  when(io.host.aw.fire()) { waddr := io.host.aw.bits.addr }
+  when(io.host.aw.fire) { waddr := io.host.aw.bits.addr }
 
   io.host.aw.ready := wstate === sWriteAddress
   io.host.w.ready := wstate === sWriteData
@@ -158,25 +158,25 @@ class VCR(implicit p: Parameters) extends Module {
 
   when(io.vcr.finish) {
     reg(0) := "b_10".U
-  }.elsewhen(io.host.w.fire() && addr(0).U === waddr) {
+  }.elsewhen(io.host.w.fire && addr(0).U === waddr) {
     reg(0) := wdata
   }
 
   for (i <- 0 until vp.nECnt) {
     when(io.vcr.ecnt(i).valid) {
       reg(eo + i) := io.vcr.ecnt(i).bits
-    }.elsewhen(io.host.w.fire() && addr(eo + i).U === waddr) {
+    }.elsewhen(io.host.w.fire && addr(eo + i).U === waddr) {
       reg(eo + i) := wdata
     }
   }
 
   for (i <- 0 until (vp.nVals + nPtrs)) {
-    when(io.host.w.fire() && addr(vo + i).U === waddr) {
+    when(io.host.w.fire && addr(vo + i).U === waddr) {
       reg(vo + i) := wdata
     }
   }
 
-  when(io.host.ar.fire()) {
+  when(io.host.ar.fire) {
     rdata := MuxLookup(io.host.ar.bits.addr, 0.U, reg_map)
   }
 
@@ -199,7 +199,7 @@ class VCR(implicit p: Parameters) extends Module {
   for (i <- 0 until vp.nUCnt) {
     when(io.vcr.ucnt(i).valid) {
       reg(uo + i) := io.vcr.ucnt(i).bits
-    }.elsewhen(io.host.w.fire() && addr(uo + i).U === waddr) {
+    }.elsewhen(io.host.w.fire && addr(uo + i).U === waddr) {
       reg(uo + i) := wdata
     }
   }

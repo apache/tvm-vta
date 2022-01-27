@@ -21,7 +21,8 @@ package unittest
 
 import chisel3._
 import chisel3.util._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
+import chiseltest._
+import chiseltest.iotesters._
 import scala.math.pow
 import unittest.util._
 import vta.core._

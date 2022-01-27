@@ -19,9 +19,7 @@
 
 package unittest
 
-import chisel3._
-import chisel3.util._
-import chisel3.iotesters.PeekPokeTester
+import chiseltest.iotesters._
 import vta.core._
 import vta.util.config._
 

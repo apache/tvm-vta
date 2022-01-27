@@ -38,7 +38,7 @@ class VMESimple(implicit p: Parameters) extends Module {
 
   val nReadClients = p(ShellKey).vmeParams.nReadClients
   val rd_arb = Module(new Arbiter(new VMECmd, nReadClients))
-  val rd_arb_chosen = RegEnable(rd_arb.io.chosen, rd_arb.io.out.fire())
+  val rd_arb_chosen = RegEnable(rd_arb.io.chosen, rd_arb.io.out.fire)
 
   for (i <- 0 until nReadClients) { rd_arb.io.in(i) <> io.vme.rd(i).cmd }
 
@@ -57,7 +57,7 @@ class VMESimple(implicit p: Parameters) extends Module {
       }
     }
     is(sReadData) {
-      when(io.mem.r.fire() && io.mem.r.bits.last) {
+      when(io.mem.r.fire && io.mem.r.bits.last) {
         rstate := sReadIdle
       }
     }
@@ -71,7 +71,7 @@ class VMESimple(implicit p: Parameters) extends Module {
 
   when(wstate === sWriteIdle) {
     wr_cnt := 0.U
-  }.elsewhen(io.mem.w.fire()) {
+  }.elsewhen(io.mem.w.fire) {
     wr_cnt := wr_cnt + 1.U
   }
 
@@ -109,12 +109,12 @@ class VMESimple(implicit p: Parameters) extends Module {
   val rd_addr = RegInit(0.U(addrBits.W))
   val wr_addr = RegInit(0.U(addrBits.W))
 
-  when(rd_arb.io.out.fire()) {
+  when(rd_arb.io.out.fire) {
     rd_len := rd_arb.io.out.bits.len
     rd_addr := rd_arb.io.out.bits.addr
   }
 
-  when(io.vme.wr(0).cmd.fire()) {
+  when(io.vme.wr(0).cmd.fire) {
     wr_len := io.vme.wr(0).cmd.bits.len
     wr_addr := io.vme.wr(0).cmd.bits.addr
   }
@@ -130,13 +130,13 @@ class VMESimple(implicit p: Parameters) extends Module {
     io.vme.rd(i).data.bits.last := io.mem.r.bits.last
     io.vme.rd(i).data.bits.tag := localTag(i)
 
-    when (io.vme.rd(i).cmd.fire()) {
+    when (io.vme.rd(i).cmd.fire) {
       localTag(i) := io.vme.rd(i).cmd.bits.tag
     }
   }
 
   io.vme.wr(0).cmd.ready := wstate === sWriteIdle
-  io.vme.wr(0).ack := io.mem.b.fire()
+  io.vme.wr(0).ack := io.mem.b.fire
   io.vme.wr(0).data.ready := wstate === sWriteData & io.mem.w.ready
 
   // mem

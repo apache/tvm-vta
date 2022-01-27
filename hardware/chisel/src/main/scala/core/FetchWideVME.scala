@@ -74,7 +74,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   val xsize = io.ins_count << log2Ceil(elemsInInstr)
   // max size of transfer is limited by a buffer size
   val xmax = (((1 << mp.lenBits) << log2Ceil(tp.clSizeRatio)).min(tp.memDepth)).U
-  val elemNb = Reg(xsize.cloneType)
+  val elemNb = Reg(xsize)
 
   val sIdle :: sRead :: sDrain :: Nil = Enum(3)
   val state = RegInit(sIdle)
@@ -95,7 +95,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
 
   io.vme_rd.data.ready := true.B
   val pipeDelayQueueDeqV = RegNext(io.vme_rd.data.valid, init = false.B)
-  val pipeDelayQueueDeqF = pipeDelayQueueDeqV // fire()
+  val pipeDelayQueueDeqF = pipeDelayQueueDeqV // fire
   val pipeDelayQueueDeqB = RegNext(io.vme_rd.data.bits)
 
   // Nb of CLs requestd, not received.
@@ -103,11 +103,11 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   val clInFlight = Reg(UInt(clCntIdxWdth.W))
   when(start) {
     clInFlight := 0.U
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && !pipeDelayQueueDeqF) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && !pipeDelayQueueDeqF) {
     clInFlight := clInFlight + readLen
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && pipeDelayQueueDeqF) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && pipeDelayQueueDeqF) {
     clInFlight := clInFlight + readLen - 1.U
-  }.elsewhen(isBusy && !io.vme_rd.cmd.fire() && pipeDelayQueueDeqF) {
+  }.elsewhen(isBusy && !io.vme_rd.cmd.fire && pipeDelayQueueDeqF) {
     assert(clInFlight > 0.U)
     clInFlight := clInFlight - 1.U
   }.otherwise {
@@ -184,7 +184,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
     }
   }
   if (debug) {
-    when (io.vme_rd.data.fire()) {
+    when (io.vme_rd.data.fire) {
       printf(s"[TensorLoad] fetch data rdDataDestIdx:%x rdDataDestMask:%b\n",
         widx.asUInt,
         wmask.asUInt)
@@ -229,7 +229,7 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
   dec.io.inst := readInstrPipe.io.deq.bits
   readInstrPipe.io.enq.valid := canRead
   readInstrPipe.io.enq.bits := rdata.asTypeOf(UInt(INST_BITS.W))
-  deqElem := readInstrPipe.io.enq.fire()
+  deqElem := readInstrPipe.io.enq.fire
   readInstrPipe.io.deq.ready := (
     (dec.io.isLoad & io.inst.ld.ready) ||
     (dec.io.isCompute & io.inst.co.ready) ||
@@ -293,13 +293,13 @@ class FetchWideVME(debug: Boolean = false)(implicit p: Parameters) extends Modul
     when(start) {
       printf("[Fetch] Launch\n")
     }
-    when(io.inst.ld.fire()) {
+    when(io.inst.ld.fire) {
       printf("[Fetch] [instruction decode] [L] %x\n", dec.io.inst)
     }
-    when(io.inst.co.fire()) {
+    when(io.inst.co.fire) {
       printf("[Fetch] [instruction decode] [C] %x\n", dec.io.inst)
     }
-    when(io.inst.st.fire()) {
+    when(io.inst.st.fire) {
       printf("[Fetch] [instruction decode] [S] %x\n", dec.io.inst)
     }
   }
@@ -339,7 +339,7 @@ class GenVMECmdWideFetch(debug: Boolean = false)(
   cmdGen.io.xpad_0 := 0.U
   cmdGen.io.xpad_1 := 0.U
   cmdGen.io.ypad_0 := 0.U
-  cmdGen.io.updateState := io.vmeCmd.fire()
+  cmdGen.io.updateState := io.vmeCmd.fire
   cmdGen.io.canSendCmd := true.B
 
   when(io.start) {

@@ -286,13 +286,13 @@ class TensorAluPipelined(debug: Boolean = false)(implicit p: Parameters) extends
 
   require(io.out.splitWidth == 1 && io.out.splitLength == 1, "-F- Out split write is not supported")
   val numVecUnits = dataSplitFactor
-  val outData = Wire(io.out.wr(0).bits.data.cloneType)
-  val dataRemapB = Wire(Vec(numVecUnits, io.acc.rd(0).data.bits.cloneType))
-  val dataRemapA = Wire(Vec(numVecUnits, io.acc.rd(0).data.bits.cloneType))
+  val outData = Wire(chiselTypeOf(io.out.wr(0).bits.data))
+  val dataRemapB = Wire(Vec(numVecUnits, chiselTypeOf(io.acc.rd(0).data.bits)))
+  val dataRemapA = Wire(Vec(numVecUnits, chiselTypeOf(io.acc.rd(0).data.bits)))
   // numVecUnits is a pow of 2
   // split dec bits pipe further if there are many vecUnits
   val decSplitNb0 =  if (numVecUnits < 8) 1 else 2
-  val decSplit0 = Wire(Vec(decSplitNb0, io.dec.cloneType))
+  val decSplit0 = Wire(Vec(decSplitNb0, chiselTypeOf(io.dec)))
   for (idx <- 0 until decSplitNb0) {
     decSplit0(idx) := ShiftRegister(io.dec, if(aluDataReadPipeDelay < 2) 0 else 1)
   }

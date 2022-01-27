@@ -283,8 +283,6 @@ class TensorMaster(tensorType: String = "none")
       }
     }
   }
-  override def cloneType =
-    new TensorMaster(tensorType).asInstanceOf[this.type]
 }
 
 /** TensorClient.
@@ -325,8 +323,6 @@ class TensorClient(tensorType: String = "none")
       }
     }
   }
-  override def cloneType =
-    new TensorClient(tensorType).asInstanceOf[this.type]
 }
 
 /** TensorMasterData.
@@ -339,8 +335,6 @@ class TensorMasterData(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
   val data = Flipped(
     ValidIO(Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W)))))
-  override def cloneType =
-    new TensorMasterData(tensorType).asInstanceOf[this.type]
 }
 
 /** TensorClientData.
@@ -353,8 +347,6 @@ class TensorClientData(tensorType: String = "none")
   (implicit p: Parameters) extends TensorParams(tensorType) {
   val data = ValidIO(
     Vec(lenSplit, Vec(widthSplit, UInt(tensorElemBits.W))))
-  override def cloneType =
-    new TensorClientData(tensorType).asInstanceOf[this.type]
 }
 
 /** TensorPadCtrl. Zero-padding controller for TensorLoad. */

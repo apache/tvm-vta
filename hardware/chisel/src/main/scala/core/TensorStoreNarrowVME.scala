@@ -197,14 +197,14 @@ class TensorStoreNarrowVME(tensorType: String = "none", debug: Boolean = false)(
 
   when(state === sWriteCmd || tag === (numMemBlock - 1).U) {
     tag := 0.U
-  }.elsewhen(io.vme_wr.data.fire()) {
+  }.elsewhen(io.vme_wr.data.fire) {
     tag := tag + 1.U
   }
 
   when(
     state === sWriteCmd || (state =/= sReadMem && set === (tensorLength - 1).U && tag === (numMemBlock - 1).U)) {
     set := 0.U
-  }.elsewhen(io.vme_wr.data.fire() && tag === (numMemBlock - 1).U) {
+  }.elsewhen(io.vme_wr.data.fire && tag === (numMemBlock - 1).U) {
     set := set + 1.U
   }
 
@@ -213,7 +213,7 @@ class TensorStoreNarrowVME(tensorType: String = "none", debug: Boolean = false)(
   when(state === sIdle) {
     raddr_cur := dec.sram_offset
     raddr_nxt := dec.sram_offset
-  }.elsewhen(io.vme_wr.data.fire() && set === (tensorLength - 1).U && tag === (numMemBlock - 1).U) {
+  }.elsewhen(io.vme_wr.data.fire && set === (tensorLength - 1).U && tag === (numMemBlock - 1).U) {
     raddr_cur := raddr_cur + 1.U
   }.elsewhen(stride) {
     raddr_cur := raddr_nxt + dec.xsize
@@ -248,7 +248,7 @@ class TensorStoreNarrowVME(tensorType: String = "none", debug: Boolean = false)(
 
   when(state === sWriteCmd) {
     xcnt := 0.U
-  }.elsewhen(io.vme_wr.data.fire()) {
+  }.elsewhen(io.vme_wr.data.fire) {
     xcnt := xcnt + 1.U
   }
 
@@ -260,11 +260,11 @@ class TensorStoreNarrowVME(tensorType: String = "none", debug: Boolean = false)(
 
   // debug
   if (debug) {
-    when(io.vme_wr.cmd.fire()) {
+    when(io.vme_wr.cmd.fire) {
       printf("[TensorStore] ysize:%x ycnt:%x raddr:%x waddr:%x len:%x rem:%x\n",
         ysize, ycnt, raddr_cur, waddr_cur, xlen, xrem)
     }
-    when(io.vme_wr.data.fire()) {
+    when(io.vme_wr.data.fire) {
       printf("[TensorStore] data:%x\n", io.vme_wr.data.bits.data)
       printf("[TensorStore] strb:%x\n", io.vme_wr.data.bits.strb)
     }

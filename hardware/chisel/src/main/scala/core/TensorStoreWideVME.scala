@@ -114,14 +114,14 @@ class TensorStoreWideVME(tensorType: String = "none", debug: Boolean = false)(
       }
     }
     is(sWriteCmd) {
-      when(io.vme_wr.cmd.fire()) {
+      when(io.vme_wr.cmd.fire) {
         state := sWriteData
         updateState := true.B
         xcnt := 0.U
       }
     }
     is(sWriteData) {
-      when(io.vme_wr.data.fire()) {
+      when(io.vme_wr.data.fire) {
         when(xcnt === readLen - 1.U) {
           state := sWriteAck
         }.otherwise {
@@ -181,10 +181,10 @@ class TensorStoreWideVME(tensorType: String = "none", debug: Boolean = false)(
   //
   //  SRAM !-tz-.=TZ=.-TZ-!-TZ-.-TZ-.-tz-!
 
-  val isFirstPulse = io.vme_wr.data.fire() && xcnt === 0.U
+  val isFirstPulse = io.vme_wr.data.fire && xcnt === 0.U
   assert(state =/= sWriteData || readLen > 0.U)
   val firstPulseTenzorsNb = tp.clSizeRatio.U - fstPulseDataStart
-  val isLastPulse = io.vme_wr.data.fire() && xcnt === readLen - 1.U
+  val isLastPulse = io.vme_wr.data.fire && xcnt === readLen - 1.U
   val spReadAddrReg = Reg(UInt(M_SRAM_OFFSET_BITS.W))
   val spReadAddr = Wire(spReadAddrReg.cloneType)
   val srcElemOffsetReg = Reg(UInt(log2Ceil(tp.clSizeRatio).W))
@@ -197,7 +197,7 @@ class TensorStoreWideVME(tensorType: String = "none", debug: Boolean = false)(
     spReadAddrReg := spReadAddr + incrFstIdx
     srcElemOffset := spElemIdx % tp.clSizeRatio.U
     srcElemOffsetReg := (spElemIdx + firstPulseTenzorsNb) % tp.clSizeRatio.U
-  }.elsewhen(io.vme_wr.data.fire()) {
+  }.elsewhen(io.vme_wr.data.fire) {
     spReadAddrReg := spReadAddrReg + 1.U
     spReadAddr := spReadAddrReg
     srcElemOffset := (spElemIdx + firstPulseTenzorsNb) % tp.clSizeRatio.U
@@ -231,7 +231,7 @@ class TensorStoreWideVME(tensorType: String = "none", debug: Boolean = false)(
     srcData(i) := VecInit(for (grpIdx <- 0 until splitDataFactor) yield {
       tensorFile(i*splitDataFactor + grpIdx).read(
         srcMemIdx(i),
-        state === sWriteCmd | (state === sWriteData && io.vme_wr.data.fire()))
+        state === sWriteCmd | (state === sWriteData && io.vme_wr.data.fire))
     }).asTypeOf(UInt(tp.tensorSizeBits.W))
 
     // crossbar src to dst
@@ -278,7 +278,7 @@ class TensorStoreWideVME(tensorType: String = "none", debug: Boolean = false)(
 
   // debug
   if (debug) {
-    when(io.vme_wr.data.fire()) {
+    when(io.vme_wr.data.fire) {
       printf("[TensorStore] data:%x\n", io.vme_wr.data.bits.data)
       printf("[TensorStore] strb:%x\n", io.vme_wr.data.bits.strb)
     }

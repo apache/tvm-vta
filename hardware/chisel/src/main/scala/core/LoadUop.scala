@@ -34,7 +34,6 @@ class UopMaster(implicit p: Parameters) extends Bundle {
   val addrBits = log2Ceil(p(CoreKey).uopMemDepth)
   val idx = ValidIO(UInt(addrBits.W))
   val data = Flipped(ValidIO(new UopDecode))
-  override def cloneType = new UopMaster().asInstanceOf[this.type]
 }
 
 /** UopClient.
@@ -47,7 +46,6 @@ class UopClient(implicit p: Parameters) extends Bundle {
   val addrBits = log2Ceil(p(CoreKey).uopMemDepth)
   val idx = Flipped(ValidIO(UInt(addrBits.W)))
   val data = ValidIO(new UopDecode)
-  override def cloneType = new UopClient().asInstanceOf[this.type]
 }
 
 /** LoadUopTop.

@@ -87,11 +87,11 @@ class TensorLoadNarrowVME(tensorType: String = "none", debug: Boolean = false)(
   val blocksInFlight = Reg(UInt(blkIdxWdth.W))
   when(io.start) {
     blocksInFlight := 0.U
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && !vmeDataFirePipe) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && !vmeDataFirePipe) {
     blocksInFlight := blocksInFlight + readLen
-  }.elsewhen(isBusy && io.vme_rd.cmd.fire() && vmeDataFirePipe) {
+  }.elsewhen(isBusy && io.vme_rd.cmd.fire && vmeDataFirePipe) {
     blocksInFlight := blocksInFlight + readLen - 1.U
-  }.elsewhen(isBusy && !io.vme_rd.cmd.fire() && vmeDataFirePipe) {
+  }.elsewhen(isBusy && !io.vme_rd.cmd.fire && vmeDataFirePipe) {
     assert(blocksInFlight > 0.U)
     blocksInFlight := blocksInFlight - 1.U
   }.otherwise {
@@ -511,14 +511,14 @@ class ReadVMEData(tensorType: String = "none", debug: Boolean = false)(
     init = false.B)
   when(io.start) {
     vmeTagDecodeLastValid :=false.B // reset tag valid
-  }.elsewhen(io.vmeData.fire()) {
+  }.elsewhen(io.vmeData.fire) {
     vmeTagDecodeLastValid := true.B // set tag valid on a new read
   }.otherwise {
     vmeTagDecodeLastValid := vmeTagDecodeLastValidNext // keep value
   }
   rdDataDestCol := DontCare
   rdDataDestIdx := DontCare
-  when(io.vmeData.fire()) {
+  when(io.vmeData.fire) {
     when (
       !vmeTagDecodeLastValidNext ||
       (vmeTagDecodeLastValidNext &&
@@ -607,7 +607,7 @@ class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
   when (io.start || stride) {
     blocksReadNb := 0.U
     commandsDone := false.B
-  }.elsewhen (io.vmeCmd.fire()) {
+  }.elsewhen (io.vmeCmd.fire) {
     val nextBlRNb = blocksReadNb + readLen
     blocksReadNb := nextBlRNb // THIS IS WHEN A NEW VME CMD HAPPENS
     when (nextBlRNb === blocksReadSize && srcRowIdx === dec.ysize - 1.U) {
@@ -618,7 +618,7 @@ class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
   }
 
   //when the whole xsize row read commands send, go for the next src row
-  when((blocksReadNb === blocksReadSize - readLen) && (srcRowIdx =/= dec.ysize - 1.U) && io.vmeCmd.fire()) {
+  when((blocksReadNb === blocksReadSize - readLen) && (srcRowIdx =/= dec.ysize - 1.U) && io.vmeCmd.fire) {
     stride := true.B
   }.otherwise {
     stride := false.B
@@ -667,7 +667,7 @@ class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
     rdCmdExtAddr := xfer_init_addr
     rdCmdExtAddrRowBegin := xfer_init_addr
     newReadRow := true.B
-  }.elsewhen (io.vmeCmd.fire()) {
+  }.elsewhen (io.vmeCmd.fire) {
     when(stride) {
       val memRow = rdCmdExtAddrRowBegin + (dec.xstride << log2Ceil(elemBytes))
       rdCmdExtAddr := memRow //  go to the next source matrix row with xstride tensors offset
@@ -709,7 +709,7 @@ class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
     when(startIssueCmdRead) {
       rdCmdDestBlockIdx := rdCmdStartIdx << blkOffset // it is aligned by tensor size
       rdCmdDestBlockIdxNext:= rdCmdDestBlockIdx + readLen
-    }.elsewhen (io.vmeCmd.fire()) {
+    }.elsewhen (io.vmeCmd.fire) {
       // increment block position by transaction length
       rdCmdDestBlockIdxNext:= rdCmdDestBlockIdxNext + readLen
     }
@@ -717,7 +717,7 @@ class GenVMECmd(tensorType: String = "none", debug: Boolean = false)(
     rdCmdValid := false.B
   }
   if(debug) {
-    when (io.vmeCmd.fire()) {
+    when (io.vmeCmd.fire) {
       printf(s"[GenVMECmd] $tensorType cmd data rdCmdDestBlockIdx:%b " +
         s" length:%d \n",
         rdCmdDestBlockIdx,

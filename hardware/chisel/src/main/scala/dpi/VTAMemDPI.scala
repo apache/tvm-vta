@@ -50,15 +50,11 @@ class MemRequest(implicit val p: Parameters) extends Bundle {
 class VTAMemDPIData(implicit val p: Parameters) extends Bundle {
   val data = UInt(p(ShellKey).memParams.dataBits.W)
   val id   = UInt(p(ShellKey).memParams.idBits.W)
-  override def cloneType =
-  new VTAMemDPIData().asInstanceOf[this.type]
 }
 
 class VTAMemDPIWrData(implicit val p: Parameters) extends Bundle {
   val data = UInt(p(ShellKey).memParams.dataBits.W)
   val strb = UInt((p(ShellKey).memParams.dataBits/8).W)
-  override def cloneType =
-  new VTAMemDPIWrData().asInstanceOf[this.type]
 }
 
 
