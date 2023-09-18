@@ -282,8 +282,8 @@ class DPIModule final : public DPIModuleNode {
   }
 
   PackedFunc GetFunction(
-      const std::string& name,
-      const ObjectPtr<Object>& sptr_to_self) final {
+      const String& name,
+      const ObjectPtr<Object>& sptr_to_self) override {
     if (name == "WriteReg") {
       return TypedPackedFunc<void(int, int)>(
         [this](int addr, int value){
@@ -305,31 +305,31 @@ class DPIModule final : public DPIModuleNode {
     CHECK(ftsim_ != nullptr);
   }
 
-  void SimLaunch() {
+  void SimLaunch() override {
     auto frun = [this]() {
       (*ftsim_)();
     };
     tsim_thread_ = std::thread(frun);
   }
 
-  void SimWait() {
+  void SimWait() override {
     sim_device_.Wait();
   }
 
-  void SimResume() {
+  void SimResume() override {
     sim_device_.Resume();
   }
 
-  void SimFinish() {
+  void SimFinish() override {
     sim_device_.Exit();
     tsim_thread_.join();
   }
 
-  void WriteReg(int addr, uint32_t value) {
+  void WriteReg(int addr, uint32_t value) override {
     host_device_.PushRequest(1, addr, value);
   }
 
-  uint32_t ReadReg(int addr) {
+  uint32_t ReadReg(int addr) override {
     uint32_t value;
     HostResponse* r = new HostResponse;
     host_device_.PushRequest(0, addr, 0);
