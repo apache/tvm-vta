@@ -282,7 +282,7 @@ class DPIModule final : public DPIModuleNode {
   }
 
   PackedFunc GetFunction(
-      const std::string& name,
+      const String& name,
       const ObjectPtr<Object>& sptr_to_self) final {
     if (name == "WriteReg") {
       return TypedPackedFunc<void(int, int)>(
