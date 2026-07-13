@@ -195,10 +195,18 @@ class TensorStoreNarrowVME(tensorType: String = "none", debug: Boolean = false)(
     ycnt := ycnt + 1.U
   }
 
-  when(state === sWriteCmd || tag === (numMemBlock - 1).U) {
+  // The tag wrap MUST be gated on the write handshake: on a WREADY-low cycle the
+  // FSM holds sWriteData (and thus vme_wr.data.valid), so an ungated
+  // `tag === numMemBlock-1 -> tag := 0` would roll the sub-block select back to
+  // the low half while the high-half beat is still unaccepted, changing WDATA
+  // under WVALID && !WREADY (an AXI4 W-channel stability violation) and
+  // re-accepting the low half (a high-half stutter that corrupts the DRAM write).
+  // Both the wrap and the increment are therefore driven by vme_wr.data.fire,
+  // matching how `set` and `raddr_cur` below already advance.
+  when(state === sWriteCmd) {
     tag := 0.U
   }.elsewhen(io.vme_wr.data.fire) {
-    tag := tag + 1.U
+    tag := Mux(tag === (numMemBlock - 1).U, 0.U, tag + 1.U)
   }
 
   when(
